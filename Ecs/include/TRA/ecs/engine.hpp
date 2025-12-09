@@ -7,6 +7,7 @@
 
 namespace tra::ecs
 {
+	class EntityManager;
 	class SystemManager;
 
 	class Engine
@@ -19,8 +20,8 @@ namespace tra::ecs
 		TRA_API void endUpdate();
 
 	private:
+		std::unique_ptr<EntityManager> m_entityManager;
 		std::unique_ptr<SystemManager> m_systemManager;
-
 	};
 }
 
