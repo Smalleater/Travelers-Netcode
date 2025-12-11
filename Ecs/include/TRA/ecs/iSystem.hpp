@@ -7,6 +7,7 @@ namespace tra::ecs
 
 	struct ISystem
 	{
+		virtual ~ISystem() = 0;
 		virtual void update(Engine* _engine) = 0;
 	};
 }

@@ -3,6 +3,8 @@
 
 #include <queue>
 
+#include "TRA/ecs/entity.hpp"
+
 namespace tra::ecs
 {
 	class EntityManager
@@ -11,8 +13,12 @@ namespace tra::ecs
 		EntityManager() = default;
 		~EntityManager() = default;
 
-	private:
+		Entity createEntity();
+		void Delete(const Entity& _entity);
 
+	private:
+		std::vector<Entity> m_entities;
+		std::queue<Entity> m_freeEntity;
 	};
 }
 

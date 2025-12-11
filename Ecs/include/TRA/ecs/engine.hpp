@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include "TRA/ecs/entity.hpp"
+
 namespace tra::ecs
 {
 	class EntityManager;
@@ -14,7 +16,22 @@ namespace tra::ecs
 	{
 	public:
 		Engine();
-		~Engine();
+		~Engine() = default;
+
+		TRA_API Entity CreateEntity();
+		TRA_API void DeleteEntity(Entity _entity);
+
+		template<typename System>
+		void addBeginUpdateSystem()
+		{
+			m_systemManager->addBeginUpdateSystem<System>();
+		}
+
+		template<typename System>
+		void addEndUpdateSystem()
+		{
+			m_systemManager->addEndUpdateSystem<System>();
+		}
 
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();

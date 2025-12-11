@@ -6,10 +6,12 @@
 namespace tra::ecs
 {
 	using EntityId = uint32_t;
-	using EntityVersion= uint32_t;
+	using EntityVersion = uint32_t;
 
 	struct Entity
 	{
+		static const Entity Null;
+
 		EntityId m_id;
 		EntityVersion m_version;
 
