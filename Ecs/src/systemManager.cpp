@@ -1,9 +1,5 @@
 #include "TRA/ecs/systemManager.hpp"
 
-#include <algorithm>
-
-#include "TRA/debugUtils.hpp"
-
 namespace tra::ecs
 {
 	void SystemManager::beginUpdate(Engine* _engine)

@@ -18,7 +18,7 @@ namespace tra::ecs
 
 	private:
 		std::vector<Entity> m_entities;
-		std::queue<Entity> m_freeEntity;
+		std::queue<EntityId> m_freeEntity;
 	};
 }
 

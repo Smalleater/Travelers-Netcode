@@ -20,13 +20,13 @@ namespace tra::ecs
 		template<typename System>
 		void addBeginUpdateSystem()
 		{
-			static_assert(std::is_base_of<ISystem, System>::value, "System must derive from ISystem");
+			static_assert(std::is_base_of<ISystem, System>::value, "Ecs: System must derive from ISystem");
 
 			for (const auto& sys : m_beginUpdateSystems)
 			{
 				if (typeid(*sys) == typeid(System))
 				{
-					TRA_WARNING_LOG("Ecs: Attempted to add duplicate begin update system.");
+					TRA_WARNING_LOG("Ecs: Attempted to add duplicate begin update system");
 					return;
 				}
 			}
@@ -37,13 +37,13 @@ namespace tra::ecs
 		template<typename System>
 		void addEndUpdateSystem()
 		{
-			static_assert(std::is_base_of<ISystem, System>::value, "System must derive from ISystem");
+			static_assert(std::is_base_of<ISystem, System>::value, "Ecs: System must derive from ISystem");
 
 			for (const auto& sys : m_endUpdateSystems)
 			{
 				if (typeid(*sys) == typeid(System))
 				{
-					TRA_WARNING_LOG("Ecs: Attempted to add duplicate end update system.");
+					TRA_WARNING_LOG("Ecs: Attempted to add duplicate end update system");
 					return;
 				}
 			}

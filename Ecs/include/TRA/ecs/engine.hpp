@@ -5,13 +5,11 @@
 
 #include <memory>
 
-#include "TRA/ecs/entity.hpp"
+#include "TRA/ecs/entityManager.hpp"
+#include "TRA/ecs/systemManager.hpp"
 
 namespace tra::ecs
 {
-	class EntityManager;
-	class SystemManager;
-
 	class Engine
 	{
 	public:
