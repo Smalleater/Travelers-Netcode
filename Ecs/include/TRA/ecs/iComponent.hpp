@@ -5,7 +5,7 @@ namespace tra::ecs
 {
 	struct IComponent
 	{
-		virtual ~IComponent() = 0;
+		virtual ~IComponent() = default;
 	};
 }
 

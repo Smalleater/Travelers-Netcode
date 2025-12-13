@@ -2,6 +2,8 @@
 #define TRA_ECS_SPARSE_SET_HPP
 
 #include <vector>
+#include <type_traits>
+#include <limits>
 #include <unordered_map>
 
 #include "TRA/debugUtils.hpp"
@@ -11,8 +13,13 @@
 
 namespace tra::ecs
 {
+	struct ISparseSet
+	{
+		virtual ~ISparseSet() = default;
+	};
+
 	template<typename Component>
-	class SparseSet
+	class SparseSet : public ISparseSet
 	{
 	public:
 		SparseSet() = default;
@@ -24,8 +31,8 @@ namespace tra::ecs
 
 			if (m_sparse.find(_entity) != m_sparse.end())
 			{
-				TRA_WARNING_LOG("Ecs: Attempted to insert duplicate component for entity with Id: %I32u:%I32u", _entity.id, _entity.vertion);
-				return
+				TRA_WARNING_LOG("Ecs: Attempted to insert duplicate component for entity with Id: %I32u:%I32u", _entity.m_id, _entity.m_version);
+				return;
 			}
 
 			if (m_dense.size() >= std::numeric_limits<size_t>::max())

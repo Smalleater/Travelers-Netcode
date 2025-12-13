@@ -12,16 +12,7 @@ namespace tra::ecs
 		~ComponentManager() = default;
 
 	private:
-		template<typename Component>
-		std::unordered_map<size_t, std::unique_ptr<SparseSet<Component>>> m_sparseSets;
-
-		template<typename Component>
-		const std::unique_ptr<SparseSet<Component>> getOrCreateSparseSet()
-		{
-			static_assert(static_assert(std::is_base_of<IComponent, Component>::value, "Ecs: Component must derive from IComponent"););
-
-			size_t hashCode = typeid(Component).hash_code();
-		}
+		std::unordered_map<size_t, std::unique_ptr<ISparseSet>> m_sparseSets;
 	};
 }
 

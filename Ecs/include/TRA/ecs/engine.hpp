@@ -7,6 +7,7 @@
 
 #include "TRA/ecs/entityManager.hpp"
 #include "TRA/ecs/systemManager.hpp"
+#include "TRA/ecs/componentManager.hpp"
 
 namespace tra::ecs
 {
@@ -16,8 +17,8 @@ namespace tra::ecs
 		Engine();
 		~Engine() = default;
 
-		TRA_API Entity CreateEntity();
-		TRA_API void DeleteEntity(Entity _entity);
+		TRA_API Entity createEntity();
+		TRA_API void deleteEntity(Entity _entity);
 
 		template<typename System>
 		void addBeginUpdateSystem()
@@ -37,6 +38,7 @@ namespace tra::ecs
 	private:
 		std::unique_ptr<EntityManager> m_entityManager;
 		std::unique_ptr<SystemManager> m_systemManager;
+		std::unique_ptr<ComponentManager> m_componentManager;
 	};
 }
 
