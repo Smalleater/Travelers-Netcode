@@ -8,6 +8,7 @@
 #include "TRA/ecs/entityManager.hpp"
 #include "TRA/ecs/systemManager.hpp"
 #include "TRA/ecs/componentManager.hpp"
+#include "TRA/ecs/entityBuffer.hpp"
 
 namespace tra::ecs
 {

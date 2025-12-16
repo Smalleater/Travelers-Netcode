@@ -8,6 +8,7 @@
 
 #include "TRA/debugUtils.hpp"
 
+#include "TRA/ecs/utils.hpp"
 #include "TRA/ecs/entity.hpp"
 #include "TRA/ecs/iComponent.hpp"
 
@@ -31,13 +32,7 @@ namespace tra::ecs
 
 			if (m_sparse.find(_entity) != m_sparse.end())
 			{
-				TRA_WARNING_LOG("Ecs: Attempted to insert duplicate component for entity with Id: %I32u:%I32u", _entity.m_id, _entity.m_version);
-				return;
-			}
-
-			if (m_dense.size() >= std::numeric_limits<size_t>::max())
-			{
-				TRA_ERROR_LOG("Ecs: SparseSet component limit reached");
+				TRA_WARNING_LOG("Ecs: Attempted to insert duplicate component for entity with Id: " + TRA_ENTITY_TO_STRING(_entity));
 				return;
 			}
 
