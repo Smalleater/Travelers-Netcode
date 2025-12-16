@@ -13,8 +13,8 @@ namespace tra::ecs
 	{
 		static const Entity Null;
 
-		EntityId m_id;
-		EntityVersion m_version;
+		EntityId m_id : 24;
+		EntityVersion m_version : 8;
 
 		bool operator==(const Entity& _other) const noexcept
 		{
