@@ -8,29 +8,30 @@ namespace tra::ecs
 	{
 		m_entityManager = std::make_unique<EntityManager>();
 		m_systemManager = std::make_unique<SystemManager>();
+		m_componentManager = std::make_unique<ComponentManager>();
 	}
 
 	Entity Engine::createEntity()
 	{
-		assert(m_entityManager == nullptr && "Ecs: EntityManager does not exist");
+		assert(m_entityManager != nullptr && "Ecs: EntityManager does not exist");
 		return m_entityManager->createEntity();
 	}
 
 	void Engine::deleteEntity(Entity _entity)
 	{
-		assert(m_entityManager == nullptr && "Ecs: EntityManager does not exist");
+		assert(m_entityManager != nullptr && "Ecs: EntityManager does not exist");
 		m_entityManager->Delete(_entity);
 	}
 
 	void Engine::beginUpdate()
 	{
-		assert(m_systemManager == nullptr && "Ecs: SystemManager does not exist");
+		assert(m_systemManager != nullptr && "Ecs: SystemManager does not exist");
 		m_systemManager->beginUpdate(this);
 	}
 
 	void Engine::endUpdate()
 	{
-		assert(m_systemManager == nullptr && "Ecs: SystemManager does not exist");
+		assert(m_systemManager != nullptr && "Ecs: SystemManager does not exist");
 		m_systemManager->endUpdate(this);
 	}
 }

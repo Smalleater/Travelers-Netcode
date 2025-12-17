@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <limits>
 #include <unordered_map>
+#include <optional>
 
 #include "TRA/debugUtils.hpp"
 
@@ -43,7 +44,7 @@ namespace tra::ecs
 
 		void remove(const Entity& _entity)
 		{
-			auto it = m_sparse.find();
+			auto it = m_sparse.find(_entity);
 			if (it != m_sparse.end())
 			{
 				size_t denseIndex = it->second;
@@ -62,7 +63,7 @@ namespace tra::ecs
 			}
 		}
 
-		std::weak_ptr<Component> get(Entity _entity)
+		const Component* get(Entity _entity)
 		{
 			auto it = m_sparse.find(_entity);
 			if (it == m_sparse.end())
@@ -70,7 +71,7 @@ namespace tra::ecs
 				return nullptr;
 			}
 
-			return m_dense[it->second];
+			return &m_dense[it->second];
 		}
 
 		bool hasComponent(EntityId _entity)

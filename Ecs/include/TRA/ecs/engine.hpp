@@ -15,8 +15,8 @@ namespace tra::ecs
 	class Engine
 	{
 	public:
-		Engine();
-		~Engine() = default;
+		TRA_API Engine();
+		TRA_API ~Engine() = default;
 
 		TRA_API Entity createEntity();
 		TRA_API void deleteEntity(Entity _entity);
@@ -24,17 +24,26 @@ namespace tra::ecs
 		template<typename System>
 		void addBeginUpdateSystem()
 		{
+			assert(m_systemManager != nullptr && "Ecs: SystemManager does not exist");
 			m_systemManager->addBeginUpdateSystem<System>();
 		}
 
 		template<typename System>
 		void addEndUpdateSystem()
 		{
+			assert(m_systemManager != nullptr && "Ecs: SystemManager does not exist");
 			m_systemManager->addEndUpdateSystem<System>();
 		}
 
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();
+
+		template<typename Component>
+		void addComponentToEntity(const Entity& _entity, const Component& _component)
+		{
+			assert(m_entityManager != nullptr && "Ecs: ComponentManager does not exist");
+			m_componentManager->addComponentToEntity<Component>(_entity, _component);
+		}
 
 	private:
 		std::unique_ptr<EntityManager> m_entityManager;

@@ -28,3 +28,4 @@ add_subdirectory(Client)
 
 add_subdirectory(TestClient)
 add_subdirectory(TestServer)
+add_subdirectory(TestEcs)
