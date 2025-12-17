@@ -45,6 +45,13 @@ namespace tra::ecs
 			m_componentManager->addComponentToEntity<Component>(_entity, _component);
 		}
 
+		template<typename Component>
+		void removeComponentFromEntity(const Entity& _entity)
+		{
+			assert(m_entityManager != nullptr && "Ecs: ComponentManager does not exist");
+			m_componentManager->removeComponentFromEntity<Component>(_entity);
+		}
+
 	private:
 		std::unique_ptr<EntityManager> m_entityManager;
 		std::unique_ptr<SystemManager> m_systemManager;

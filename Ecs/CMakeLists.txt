@@ -14,7 +14,8 @@ add_library(tra_ecs SHARED ${SOURCES})
 
 # Set include directories (public headers and internal headers)
 target_include_directories(tra_ecs
-    PUBLIC 
+    PUBLIC
+        ${COMMON_INCLUDE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}/internal
@@ -22,14 +23,6 @@ target_include_directories(tra_ecs
 
 # Define export macro for DLL/SO symbol visibility
 target_compile_definitions(tra_ecs PRIVATE TRA_EXPORTS)
-
-if(WIN32)
-    target_link_libraries(tra_ecs PUBLIC ${COMMON_EXPORT_LIB_DIR}/tra_core.lib)
-else()
-    target_link_libraries(tra_ecs PUBLIC ${COMMON_EXPORT_LIB_DIR}/libtra_core.so)
-endif()
-
-target_link_libraries(tra_ecs PUBLIC tra_core)
 
 target_compile_definitions(tra_ecs
     PUBLIC

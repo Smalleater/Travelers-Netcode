@@ -27,13 +27,11 @@ namespace tra::ecs
 		SparseSet() = default;
 		~SparseSet() = default;
 
-		void insert(const Entity _entity, const Component& _component)
+		void insert(const Entity& _entity, const Component& _component)
 		{
-			static_assert(std::is_base_of<IComponent, Component>::value, "Ecs: Component must derive from IComponent");
-
 			if (m_sparse.find(_entity) != m_sparse.end())
 			{
-				TRA_WARNING_LOG("Ecs: Attempted to insert duplicate component for entity with Id: " + TRA_ENTITY_TO_STRING(_entity));
+				TRA_WARNING_LOG(("Ecs: Attempted to insert duplicate component for entity with Id: " + TRA_ENTITY_TO_STRING(_entity)).c_str());
 				return;
 			}
 
@@ -45,7 +43,12 @@ namespace tra::ecs
 		void remove(const Entity& _entity)
 		{
 			auto it = m_sparse.find(_entity);
-			if (it != m_sparse.end())
+			if (it == m_sparse.end())
+			{
+				TRA_WARNING_LOG(("Ecs: Attempted to remove non-existent component for entity with Id: " + TRA_ENTITY_TO_STRING(_entity)).c_str());
+				return;
+			}
+			else
 			{
 				size_t denseIndex = it->second;
 				size_t lastDenseIndex = m_dense.size() - 1;
@@ -63,7 +66,7 @@ namespace tra::ecs
 			}
 		}
 
-		const Component* get(Entity _entity)
+		Component* get(const Entity& _entity)
 		{
 			auto it = m_sparse.find(_entity);
 			if (it == m_sparse.end())
@@ -74,7 +77,7 @@ namespace tra::ecs
 			return &m_dense[it->second];
 		}
 
-		bool hasComponent(EntityId _entity)
+		bool hasComponent(const Entity& _entity)
 		{
 			return m_sparse.find(_entity) != m_sparse.end();
 		}
