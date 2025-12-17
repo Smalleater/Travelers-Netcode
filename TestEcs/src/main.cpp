@@ -3,7 +3,7 @@
 
 #include "TRA/ecs/engine.hpp"
 
-constexpr size_t ENTITY_COUNT = 100000;
+constexpr size_t ENTITY_COUNT = 60000;
 
 using namespace tra;
 
@@ -39,6 +39,28 @@ struct AddTestComponentSystem : public ecs::ISystem
 	}
 };
 
+struct GetTestComponentSystem : public ecs::ISystem
+{
+	void update(ecs::Engine* _engine) override
+	{
+		TestComponent* testComponent;
+		for (size_t i = 0; i < ENTITY_COUNT; i++)
+		{
+			testComponent = nullptr;
+			if (_engine->entityHasComponent<TestComponent>(entities[i]))
+			{
+				testComponent = _engine->getEntityComponent<TestComponent>(entities[i]);
+				if (testComponent)
+				{
+					++testComponent->test;
+					--testComponent->test;
+				}
+			}
+		}
+	}
+};
+
+
 struct RemoveTestComponentSystem : public ecs::ISystem
 {
 	void update(ecs::Engine* _engine) override
@@ -61,18 +83,18 @@ struct DeleteEntitySystem : public ecs::ISystem
 	}
 };
 
-int main() 
+int main()
 {
 	std::cout << "Create ECS\n";
 	ecs::Engine ecsEngine;
 
 	ecsEngine.addBeginUpdateSystem<CreateEntitySystem>();
-
 	ecsEngine.addBeginUpdateSystem<AddTestComponentSystem>();
-	ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
+	ecsEngine.addBeginUpdateSystem<GetTestComponentSystem>();
 
+	ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
 	ecsEngine.addEndUpdateSystem<DeleteEntitySystem>();
-	
+
 	while (true)
 	{
 		auto start = std::chrono::high_resolution_clock::now();

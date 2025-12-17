@@ -26,6 +26,20 @@ namespace tra::ecs
 			sparseSet->remove(_entity);
 		}
 
+		template<typename Component>
+		Component* getEntityComponent(const Entity& _entity)
+		{
+			SparseSet<Component>* sparseSet = getOrCreateComponentSparseSet<Component>();
+			return sparseSet->get(_entity);
+		}
+
+		template<typename Component>
+		bool entityHasComponent(const Entity& _entity)
+		{
+			SparseSet<Component>* sparseSet = getOrCreateComponentSparseSet<Component>();
+			return sparseSet->hasComponent(_entity);
+		}
+
 		template<typename ...Component>
 		void querryEntityWith();
 

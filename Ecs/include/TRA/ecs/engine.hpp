@@ -41,15 +41,29 @@ namespace tra::ecs
 		template<typename Component>
 		void addComponentToEntity(const Entity& _entity, const Component& _component)
 		{
-			assert(m_entityManager != nullptr && "Ecs: ComponentManager does not exist");
+			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
 			m_componentManager->addComponentToEntity<Component>(_entity, _component);
 		}
 
 		template<typename Component>
 		void removeComponentFromEntity(const Entity& _entity)
 		{
-			assert(m_entityManager != nullptr && "Ecs: ComponentManager does not exist");
+			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
 			m_componentManager->removeComponentFromEntity<Component>(_entity);
+		}
+
+		template<typename Component>
+		Component* getEntityComponent(const Entity& _entity)
+		{
+			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
+			return m_componentManager->getEntityComponent<Component>(_entity);
+		}
+
+		template<typename Component>
+		bool entityHasComponent(const Entity& _entity)
+		{
+			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
+			return m_componentManager->entityHasComponent<Component>(_entity);
 		}
 
 	private:
