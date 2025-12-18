@@ -72,16 +72,38 @@ namespace tra::ecs
 			return result;
 		}
 
-		template<typename ...Component>
-		void querryEntityWithout()
+		template<typename... Component>
+		void querryEntityWithout(const std::vector<Entity>& _entities)
 		{
+			QueryKey queryKey = makeQueryKey<Component...>();
+			size_t entitiesHash = hashEntities(_entities);
+			QueryWithEntitiesKey cacheKey{ queryKey, entitiesHash };
 
+			auto it = m_entityQueryWithoutCache.find(cacheKey);
+			if (it != m_entityQueryWithoutCache.end())
+			{
+				return it->second;
+			}
+
+			std::vector<Entity> result;
+			for (const Entity& entity : _entities)
+			{
+				bool hasAll = (!entityHasComponent<Component>(entity) && ...);
+				if (hasAll)
+				{
+					result.push_back(entity);
+				}
+			}
+
+			m_entityQueryWithoutCache[cacheKey] = result;
+			return result;
 		}
 
 	private:
 		std::unordered_map<size_t, std::shared_ptr<ISparseSet>> m_sparseSets;
 
 		std::unordered_map<QueryWithEntitiesKey, std::vector<Entity>> m_entityQueryWithCache;
+		std::unordered_map<QueryWithEntitiesKey, std::vector<Entity>> m_entityQueryWithoutCache;
 
 		template<typename Component>
 		SparseSet<Component>* getOrCreateComponentSparseSet()
@@ -123,12 +145,25 @@ namespace tra::ecs
 		{
 			size_t componentHash = typeid(Component).hash_code();
 
-			for (auto it = m_entityQueryWithCache.begin(); it != m_entityQueryWithCache.end(); )
+			for (auto it = m_entityQueryWithCache.begin(); it != m_entityQueryWithCache.end();)
 			{
 				const std::vector<size_t>& typeHashes = it->first.m_queryKey.m_typeHashes;
 				if (std::find(typeHashes.begin(), typeHashes.end(), componentHash) != typeHashes.end())
 				{
 					it = m_entityQueryWithCache.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
+
+			for (auto it = m_entityQueryWithoutCache.begin(); it != m_entityQueryWithoutCache.end();)
+			{
+				const std::vector<size_t>& typeHashes = it->first.m_queryKey.m_typeHashes;
+				if (std::find(typeHashes.begin(), typeHashes.end(), componentHash) != typeHashes.end())
+				{
+					it = m_entityQueryWithoutCache.erase(it);
 				}
 				else
 				{
