@@ -1,8 +1,11 @@
 #ifndef TRA_ECS_COMPONENT_MANAGER_HPP
 #define TRA_ECS_COMPONENT_MANAGER_HPP
 
+#include <algorithm>
+
 #include "TRA/debugUtils.hpp"
 #include "TRA/ecs/sparseSet.hpp"
+#include "TRA/ecs/queryKey.hpp"
 
 namespace tra::ecs
 {
@@ -17,6 +20,7 @@ namespace tra::ecs
 		{
 			SparseSet<Component>* sparseSet = getOrCreateComponentSparseSet<Component>();
 			sparseSet->insert(_entity, _component);
+			InvalidateCachesForComponent<Component>();
 		}
 
 		template<typename Component>
@@ -24,6 +28,7 @@ namespace tra::ecs
 		{
 			SparseSet<Component>* sparseSet = getOrCreateComponentSparseSet<Component>();
 			sparseSet->remove(_entity);
+			InvalidateCachesForComponent<Component>();
 		}
 
 		template<typename Component>
@@ -40,20 +45,43 @@ namespace tra::ecs
 			return sparseSet->hasComponent(_entity);
 		}
 
-		template<typename ...Component>
-		void querryEntityWith();
+		template<typename... Component>
+		std::vector<Entity> querryEntityWith(const std::vector<Entity>& _entities)
+		{
+			QueryKey queryKey = makeQueryKey<Component...>();
+			size_t entitiesHash = hashEntities(_entities);
+			QueryWithEntitiesKey cacheKey{ queryKey, entitiesHash };
+
+			auto it = m_entityQueryWithCache.find(cacheKey);
+			if (it != m_entityQueryWithCache.end())
+			{
+				return it->second;
+			}
+
+			std::vector<Entity> result;
+			for (const Entity& entity : _entities)
+			{
+				bool hasAll = (entityHasComponent<Component>(entity) && ...);
+				if (hasAll)
+				{
+					result.push_back(entity);
+				}
+			}
+
+			m_entityQueryWithCache[cacheKey] = result;
+			return result;
+		}
 
 		template<typename ...Component>
-		void querryEntityWith(const std::vector<Entity>& _entitiesToQuery);
+		void querryEntityWithout()
+		{
 
-		template<typename ...Component>
-		void querryEntityWithout();
-
-		template<typename ...Component>
-		void querryEntityWithout(const std::vector<Entity>& _entitiesToQuery);
+		}
 
 	private:
 		std::unordered_map<size_t, std::shared_ptr<ISparseSet>> m_sparseSets;
+
+		std::unordered_map<QueryWithEntitiesKey, std::vector<Entity>> m_entityQueryWithCache;
 
 		template<typename Component>
 		SparseSet<Component>* getOrCreateComponentSparseSet()
@@ -69,6 +97,44 @@ namespace tra::ecs
 
 			m_sparseSets[hashCode] = std::make_unique<SparseSet<Component>>();
 			return static_cast<SparseSet<Component>*>(m_sparseSets[hashCode].get());
+		}
+
+		template<typename... Component>
+		QueryKey makeQueryKey() const
+		{
+			std::vector<size_t> hashes = { typeid(Component).hash_code()... };
+			std::sort(hashes.begin(), hashes.end());
+			return QueryKey{ hashes };
+		}
+
+		size_t hashEntities(const std::vector<Entity>& _entities)
+		{
+			size_t seed = 0;
+			for (const Entity& entity : _entities)
+			{
+				seed ^= std::hash<Entity>()(entity) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			}
+
+			return seed;
+		}
+
+		template<typename Component>
+		void InvalidateCachesForComponent()
+		{
+			size_t componentHash = typeid(Component).hash_code();
+
+			for (auto it = m_entityQueryWithCache.begin(); it != m_entityQueryWithCache.end(); )
+			{
+				const std::vector<size_t>& typeHashes = it->first.m_queryKey.m_typeHashes;
+				if (std::find(typeHashes.begin(), typeHashes.end(), componentHash) != typeHashes.end())
+				{
+					it = m_entityQueryWithCache.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
 		}
 	};
 }

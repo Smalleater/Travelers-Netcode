@@ -3,16 +3,31 @@
 
 #include "TRA/ecs/engine.hpp"
 
-constexpr size_t ENTITY_COUNT = 60000;
+constexpr size_t ENTITY_COUNT = 3000000;
 
 using namespace tra;
 
 std::vector<ecs::Entity> entities(ENTITY_COUNT);
 
-struct TestComponent : ecs::IComponent
+struct TestComponent0 : ecs::IComponent
 {
 	uint16_t test = 2006;
 	std::string string = "Hello";
+};
+
+struct TestComponent1 : ecs::IComponent
+{
+	std::string string = "HelloWorld";
+};
+
+struct TestComponent2 : ecs::IComponent
+{
+	uint64_t test0 = 2006;
+	uint64_t test1 = 2006;
+	uint64_t test2 = 2006;
+	uint64_t test3 = 2006;
+	uint64_t test4 = 2006;
+	uint64_t test5 = 2006;
 };
 
 struct CreateEntitySystem : public ecs::ISystem
@@ -28,13 +43,13 @@ struct CreateEntitySystem : public ecs::ISystem
 
 struct AddTestComponentSystem : public ecs::ISystem
 {
-	TestComponent testComponent;
+	TestComponent0 testComponent;
 
 	void update(ecs::Engine* _engine) override
 	{
 		for (size_t i = 0; i < ENTITY_COUNT; i++)
 		{
-			_engine->addComponentToEntity<TestComponent>(entities[i], testComponent);
+			_engine->addComponentToEntity<TestComponent0>(entities[i], testComponent);
 		}
 	}
 };
@@ -43,13 +58,13 @@ struct GetTestComponentSystem : public ecs::ISystem
 {
 	void update(ecs::Engine* _engine) override
 	{
-		TestComponent* testComponent;
+		TestComponent0* testComponent;
 		for (size_t i = 0; i < ENTITY_COUNT; i++)
 		{
 			testComponent = nullptr;
-			if (_engine->entityHasComponent<TestComponent>(entities[i]))
+			if (_engine->entityHasComponent<TestComponent0>(entities[i]))
 			{
-				testComponent = _engine->getEntityComponent<TestComponent>(entities[i]);
+				testComponent = _engine->getEntityComponent<TestComponent0>(entities[i]);
 				if (testComponent)
 				{
 					++testComponent->test;
@@ -60,6 +75,17 @@ struct GetTestComponentSystem : public ecs::ISystem
 	}
 };
 
+struct QuerryWithTestSystem : public ecs::ISystem
+{
+	void update(ecs::Engine* _engine) override
+	{
+		std::vector<ecs::Entity> queryResult;
+		queryResult = _engine->querryEntityWith<TestComponent0>(entities);
+		queryResult = _engine->querryEntityWith<TestComponent1>(entities);
+		queryResult = _engine->querryEntityWith<TestComponent0, TestComponent2>(entities);
+	}
+};
+
 
 struct RemoveTestComponentSystem : public ecs::ISystem
 {
@@ -67,7 +93,7 @@ struct RemoveTestComponentSystem : public ecs::ISystem
 	{
 		for (size_t i = 0; i < ENTITY_COUNT; i++)
 		{
-			_engine->removeComponentFromEntity<TestComponent>(entities[i]);
+			_engine->removeComponentFromEntity<TestComponent0>(entities[i]);
 		}
 	}
 };
@@ -88,12 +114,39 @@ int main()
 	std::cout << "Create ECS\n";
 	ecs::Engine ecsEngine;
 
-	ecsEngine.addBeginUpdateSystem<CreateEntitySystem>();
-	ecsEngine.addBeginUpdateSystem<AddTestComponentSystem>();
-	ecsEngine.addBeginUpdateSystem<GetTestComponentSystem>();
+	for (size_t i = 0; i < ENTITY_COUNT; i++)
+	{
+		entities[i] = ecsEngine.createEntity();
+	}
 
-	ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
-	ecsEngine.addEndUpdateSystem<DeleteEntitySystem>();
+	TestComponent0 testComponent0;
+	TestComponent1 testComponent1;
+	TestComponent2 testComponent2;
+	for (size_t i = 0; i < ENTITY_COUNT; i++)
+	{
+		int result = i % 3;
+		if (result == 0)
+		{
+			ecsEngine.addComponentToEntity<TestComponent0>(entities[i], testComponent0);
+		}
+		else if (result == 1)
+		{
+			ecsEngine.addComponentToEntity<TestComponent1>(entities[i], testComponent1);
+		}
+		else if (result == 2)
+		{
+			ecsEngine.addComponentToEntity<TestComponent0>(entities[i], testComponent0);
+			ecsEngine.addComponentToEntity<TestComponent2>(entities[i], testComponent2);
+		}
+	}
+
+	//ecsEngine.addBeginUpdateSystem<CreateEntitySystem>();
+	//ecsEngine.addBeginUpdateSystem<AddTestComponentSystem>();
+	//ecsEngine.addBeginUpdateSystem<GetTestComponentSystem>();
+	ecsEngine.addBeginUpdateSystem<QuerryWithTestSystem>();
+
+	//ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
+	//ecsEngine.addEndUpdateSystem<DeleteEntitySystem>();
 
 	while (true)
 	{

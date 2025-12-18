@@ -66,6 +66,13 @@ namespace tra::ecs
 			return m_componentManager->entityHasComponent<Component>(_entity);
 		}
 
+		template<typename... Component>
+		std::vector<Entity> querryEntityWith(const std::vector<Entity>& _entities)
+		{
+			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
+			return m_componentManager->querryEntityWith<Component...>(_entities);
+		}
+
 	private:
 		std::unique_ptr<EntityManager> m_entityManager;
 		std::unique_ptr<SystemManager> m_systemManager;
