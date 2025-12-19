@@ -3,7 +3,7 @@
 
 #include "TRA/ecs/engine.hpp"
 
-constexpr size_t ENTITY_COUNT = 3000000;
+constexpr size_t ENTITY_COUNT = 1000000;
 
 using namespace tra;
 
@@ -86,6 +86,17 @@ struct QuerryWithTestSystem : public ecs::ISystem
 	}
 };
 
+struct QuerryWithoutTestSystem : public ecs::ISystem
+{
+	void update(ecs::Engine* _engine) override
+	{
+		std::vector<ecs::Entity> queryResult;
+		queryResult = _engine->querryEntityWithout<TestComponent0>(entities);
+		queryResult = _engine->querryEntityWithout<TestComponent1>(entities);
+		queryResult = _engine->querryEntityWithout<TestComponent0, TestComponent2>(entities);
+	}
+};
+
 
 struct RemoveTestComponentSystem : public ecs::ISystem
 {
@@ -144,6 +155,7 @@ int main()
 	//ecsEngine.addBeginUpdateSystem<AddTestComponentSystem>();
 	//ecsEngine.addBeginUpdateSystem<GetTestComponentSystem>();
 	ecsEngine.addBeginUpdateSystem<QuerryWithTestSystem>();
+	ecsEngine.addBeginUpdateSystem<QuerryWithoutTestSystem>();
 
 	//ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
 	//ecsEngine.addEndUpdateSystem<DeleteEntitySystem>();
