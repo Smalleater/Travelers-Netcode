@@ -46,7 +46,7 @@ namespace tra::ecs
 		}
 
 		template<typename... Component>
-		std::vector<Entity> querryEntityWith(const std::vector<Entity>& _entities)
+		std::vector<Entity> queryEntityWith(const std::vector<Entity>& _entities)
 		{
 			QueryKey queryKey = makeQueryKey<Component...>();
 			size_t entitiesHash = hashEntities(_entities);
@@ -73,7 +73,7 @@ namespace tra::ecs
 		}
 
 		template<typename... Component>
-		std::vector<Entity> querryEntityWithout(const std::vector<Entity>& _entities)
+		std::vector<Entity> queryEntityWithout(const std::vector<Entity>& _entities)
 		{
 			QueryKey queryKey = makeQueryKey<Component...>();
 			size_t entitiesHash = hashEntities(_entities);

@@ -80,9 +80,9 @@ struct QuerryWithTestSystem : public ecs::ISystem
 	void update(ecs::Engine* _engine) override
 	{
 		std::vector<ecs::Entity> queryResult;
-		queryResult = _engine->querryEntityWith<TestComponent0>(entities);
-		queryResult = _engine->querryEntityWith<TestComponent1>(entities);
-		queryResult = _engine->querryEntityWith<TestComponent0, TestComponent2>(entities);
+		queryResult = _engine->queryEntityWith<TestComponent0>(entities);
+		queryResult = _engine->queryEntityWith<TestComponent1>(entities);
+		queryResult = _engine->queryEntityWith<TestComponent0, TestComponent2>(entities);
 	}
 };
 
@@ -91,9 +91,30 @@ struct QuerryWithoutTestSystem : public ecs::ISystem
 	void update(ecs::Engine* _engine) override
 	{
 		std::vector<ecs::Entity> queryResult;
-		queryResult = _engine->querryEntityWithout<TestComponent0>(entities);
-		queryResult = _engine->querryEntityWithout<TestComponent1>(entities);
-		queryResult = _engine->querryEntityWithout<TestComponent0, TestComponent2>(entities);
+		queryResult = _engine->queryEntityWithout<TestComponent0>(entities);
+		queryResult = _engine->queryEntityWithout<TestComponent1>(entities);
+		queryResult = _engine->queryEntityWithout<TestComponent0, TestComponent2>(entities);
+	}
+};
+
+struct QuerryEntityBufferTestSystem : public ecs::ISystem
+{
+	void update(ecs::Engine* _engine) override
+	{
+		std::vector<ecs::Entity> queryResult;
+		queryResult = _engine->queryEntity()
+			->queryEntityWith<TestComponent0>()
+			->getEntities();
+
+		queryResult = _engine->queryEntity()
+			->queryEntityWith<TestComponent0>()
+			->queryEntityWithout<TestComponent1>()
+			->getEntities();
+
+		queryResult = _engine->queryEntity()
+			->queryEntityWith<TestComponent0, TestComponent2>()
+			->queryEntityWithout<TestComponent1>()
+			->getEntities();
 	}
 };
 
@@ -154,11 +175,14 @@ int main()
 	//ecsEngine.addBeginUpdateSystem<CreateEntitySystem>();
 	//ecsEngine.addBeginUpdateSystem<AddTestComponentSystem>();
 	//ecsEngine.addBeginUpdateSystem<GetTestComponentSystem>();
-	ecsEngine.addBeginUpdateSystem<QuerryWithTestSystem>();
-	ecsEngine.addBeginUpdateSystem<QuerryWithoutTestSystem>();
+	//ecsEngine.addBeginUpdateSystem<QuerryWithTestSystem>();
+	//ecsEngine.addBeginUpdateSystem<QuerryWithoutTestSystem>();
+	ecsEngine.addBeginUpdateSystem<QuerryEntityBufferTestSystem>();
 
 	//ecsEngine.addEndUpdateSystem<RemoveTestComponentSystem>();
 	//ecsEngine.addEndUpdateSystem<DeleteEntitySystem>();
+
+	std::cout << "End Init\n";
 
 	while (true)
 	{

@@ -9,30 +9,29 @@ namespace tra::ecs
 		m_componentManager = _componentManager;
 	}
 
+	EntityBuffer::EntityBuffer(const std::shared_ptr<ComponentManager>& _componentManager, std::vector<Entity>&& _entities)
+	{
+		m_componentManager = _componentManager;
+		m_entities = std::move(_entities);
+	}
+
 	void EntityBuffer::addEntity(const Entity _entity)
 	{
-		m_entityToIndex[_entity] = m_entities.size();
 		m_entities.push_back(_entity);
 	}
 
 	void EntityBuffer::removeEntity(const Entity _entity)
 	{
-		auto it = m_entityToIndex.find(_entity);
-		if (it != m_entityToIndex.end())
+		auto it = std::find(m_entities.begin(), m_entities.end(), _entity);
+		if (it != m_entities.end())
 		{
-			size_t index = it->second;
-			size_t lastIndex = m_entities.size() - 1;
-
-			if (index != lastIndex)
-			{
-				m_entities[index] = m_entities[lastIndex];
-				m_entityToIndex[m_entities[index]] = index;
-			}
-
+			*it = m_entities.back();
 			m_entities.pop_back();
-			m_entityToIndex.erase(it);
 		}
 	}
 
-
+	std::vector<Entity> EntityBuffer::getEntities()
+	{
+		return m_entities;
+	}
 }

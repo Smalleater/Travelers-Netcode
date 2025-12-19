@@ -67,23 +67,26 @@ namespace tra::ecs
 		}
 
 		template<typename... Component>
-		std::vector<Entity> querryEntityWith(const std::vector<Entity>& _entities)
+		std::vector<Entity> queryEntityWith(const std::vector<Entity>& _entities)
 		{
 			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
-			return m_componentManager->querryEntityWith<Component...>(_entities);
+			return m_componentManager->queryEntityWith<Component...>(_entities);
 		}
 
 		template<typename... Component>
-		std::vector<Entity> querryEntityWithout(const std::vector<Entity>& _entities)
+		std::vector<Entity> queryEntityWithout(const std::vector<Entity>& _entities)
 		{
 			assert(m_componentManager != nullptr && "Ecs: ComponentManager does not exist");
-			return m_componentManager->querryEntityWithout<Component...>(_entities);
+			return m_componentManager->queryEntityWithout<Component...>(_entities);
 		}
+
+		TRA_API std::shared_ptr<EntityBuffer> queryEntity();
 
 	private:
 		std::unique_ptr<EntityManager> m_entityManager;
 		std::unique_ptr<SystemManager> m_systemManager;
-		std::unique_ptr<ComponentManager> m_componentManager;
+		std::shared_ptr<ComponentManager> m_componentManager;
+		std::shared_ptr<EntityBuffer> m_entityBuffer;
 	};
 }
 
