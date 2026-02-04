@@ -36,7 +36,7 @@ int main() {
 			if (queryIds[i] == selfEntityId) continue;
 
 			auto getMessageResult = Server::Get()->getTcpMessages(queryIds[i], "HelloWorld");
-			for (auto message : getMessageResult.second)
+			for (auto message : getMessageResult)
 			{
 				message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
 				std::cout << "Received from client " << queryIds[i] << ": " << helloMessage->string << std::endl;
