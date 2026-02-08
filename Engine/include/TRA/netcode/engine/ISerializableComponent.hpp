@@ -1,7 +1,7 @@
 #ifndef TRA_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
 #define TRA_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
 
-#include "TRA/engine/INetworkComponent.hpp"
+#include "TRA/netcode/engine/INetworkComponent.hpp"
 
 #include <vector>
 #include <cstdint>

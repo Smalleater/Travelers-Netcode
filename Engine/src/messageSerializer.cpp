@@ -1,9 +1,9 @@
 #include "messageSerializer.hpp"
 
+#include "TRA/debugUtils.hpp"
+
 #include <stdexcept>
 #include <cstring>
-
-#include "TRA/debugUtils.hpp"
 
 namespace tra::engine
 {

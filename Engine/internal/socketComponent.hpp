@@ -1,9 +1,9 @@
 #ifndef TRA_ENGINE_SOCKET_COMPONENT_HPP
 #define TRA_ENGINE_SOCKET_COMPONENT_HPP
 
-#include "TRA/engine/iNetworkComponent.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/core/tcpSocket.hpp"
+#include "TRA/netcode/engine/iNetworkComponent.hpp"
 
 namespace tra::engine
 {

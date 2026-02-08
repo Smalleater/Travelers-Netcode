@@ -1,6 +1,6 @@
-#include "TRA/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
 
-#include "TRA/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/networkEcsUtils.hpp"
 
 #include "iNetworkSystem.hpp"
 #include "destroyComponentTag.hpp"

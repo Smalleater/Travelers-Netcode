@@ -1,10 +1,10 @@
 #include "pendingDisconnectSystem.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
-#include "TRA/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/disconnectedComponent.hpp"
 
-#include "TRA/engine/connectionStatusComponent.hpp"
-#include "TRA/engine/disconnectedComponent.hpp"
 #include "pendingDisconnectComponent.hpp"
 #include "socketComponent.hpp"
 #include "messageComponent.hpp"

@@ -1,10 +1,10 @@
 #include "disconnectSystem.hpp"
 
-#include "TRA/core/tcpSocket.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/disconnectedComponent.hpp"
 
-#include "TRA/engine/disconnectedComponent.hpp"
 #include "selfComponent.hpp"
 
 namespace tra::engine

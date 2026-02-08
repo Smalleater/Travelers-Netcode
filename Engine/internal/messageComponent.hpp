@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "TRA/engine/iNetworkComponent.hpp"
+#include "TRA/netcode/engine/iNetworkComponent.hpp"
 
 namespace tra::engine
 {

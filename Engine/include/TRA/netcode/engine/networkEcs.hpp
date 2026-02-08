@@ -2,6 +2,8 @@
 #define TRA_ENGINE_NETWORK_ECS_HPP
 
 #include "TRA/export.hpp"
+#include "TRA/errorCode.hpp"
+#include "TRA/debugUtils.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -10,9 +12,6 @@
 #include <typeindex>
 #include <memory>
 #include <utility>
-
-#include "TRA/errorCode.hpp"
-#include "TRA/debugUtils.hpp"
 
 namespace tra::engine
 {

@@ -1,6 +1,6 @@
 #include "networkSystemRegistrar.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
 
 #include "acceptConnectionSystem.hpp"
 #include "messageSystem.hpp"

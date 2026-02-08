@@ -5,7 +5,8 @@
 #include <memory>
 #include <cstdint>
 
-#include "TRA/engine/message.hpp"
+#include "TRA/netcode/engine/message.hpp"
+
 #include "messageHeader.hpp"
 
 namespace tra::engine

@@ -2,14 +2,14 @@
 #define TRA_ENGINE_NETWORK_ENGINE_HPP
 
 #include "TRA/export.hpp"
+#include "TRA/errorCode.hpp"
 
 #include <cstdint>
 
-#include "TRA/errorCode.hpp"
-#include "TRA/core/tcpSocket.hpp"
-#include "TRA/core/udpSocket.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
+#include "TRA/netcode/core/udpSocket.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
 
 namespace tra::engine
 {

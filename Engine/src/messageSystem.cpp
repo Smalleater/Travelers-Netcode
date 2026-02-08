@@ -1,19 +1,18 @@
 #include "messageSystem.hpp"
 
-#define TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK 32
-
 #include "TRA/debugUtils.hpp"
 
-#include "TRA/core/tcpSocket.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
-#include "TRA/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcsUtils.hpp"
 
 #include "messageSerializer.hpp"
-
 #include "socketComponent.hpp"
 #include "messageComponent.hpp"
 #include "pendingDisconnectComponent.hpp"
+
+#define TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK 32
 
 namespace tra::engine
 {

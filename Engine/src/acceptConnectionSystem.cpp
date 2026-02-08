@@ -1,20 +1,20 @@
 #include "acceptConnectionSystem.hpp"
 
-#define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
-
 #include "TRA/debugUtils.hpp"
 
-#include "TRA/core/tcpSocket.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/engine/networkEcs.hpp"
-#include "TRA/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/networkEcs.hpp"
+#include "TRA/netcode/engine/networkEcsUtils.hpp"
 
-#include "TRA/engine/networkRootComponentTag.hpp"
-#include "TRA/engine/newConnectionComponent.hpp"
-#include "TRA/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/networkRootComponentTag.hpp"
+#include "TRA/netcode/engine/newConnectionComponent.hpp"
+#include "TRA/netcode/engine/connectionStatusComponent.hpp"
 
 #include "socketComponent.hpp"
 #include "messageComponent.hpp"
+
+#define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
 
 namespace tra::engine
 {

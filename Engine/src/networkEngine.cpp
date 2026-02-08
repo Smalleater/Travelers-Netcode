@@ -1,18 +1,19 @@
-#include "TRA/engine/networkEngine.hpp"
+#include "TRA/netcode/engine/networkEngine.hpp"
 
 #include "TRA/debugUtils.hpp"
-#include "TRA/core/netUtils.hpp"
-#include "TRA/engine/message.hpp"
-#include "TRA/engine/networkEcsUtils.hpp"
+
+#include "TRA/netcode/core/netUtils.hpp"
+
+#include "TRA/netcode/engine/message.hpp"
+#include "TRA/netcode/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/networkRootComponentTag.hpp"
+#include "TRA/netcode/engine/connectionStatusComponent.hpp"
 
 #ifdef _WIN32
-#include "TRA/core/wsaInitializer.hpp"
+#include "TRA/netcode/core/wsaInitializer.hpp"
 #endif
 
 #include "networkSystemRegistrar.hpp"
-
-#include "TRA/engine/networkRootComponentTag.hpp"
-#include "TRA/engine/connectionStatusComponent.hpp"
 #include "socketComponent.hpp"
 #include "messageComponent.hpp"
 #include "selfComponent.hpp"

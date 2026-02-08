@@ -2,7 +2,8 @@
 #define TRA_ENGINE_NETWORK_ECS_UTILS_HPP
 
 #include "TRA/errorCode.hpp"
-#include "TRA/engine/networkEcs.hpp"
+
+#include "TRA/netcode/engine/networkEcs.hpp"
 
 #define TRA_ENTITY_ADD_COMPONENT(_ecs, _entityId, _component, _onError) \
 	{ \
