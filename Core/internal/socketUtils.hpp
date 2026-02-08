@@ -1,11 +1,12 @@
 #ifndef TRA_CORE_SOCKET_UTILS_HPP
 #define TRA_CORE_SOCKET_UTILS_HPP
 
+#include "TRA/errorCode.hpp"
+
 #include <utility>
 #include <string>
 
-#include "TRA/errorCode.hpp"
-#include "TRA/core/networkInclude.hpp"
+#include "TRA/netcode/core/networkInclude.hpp"
 
 namespace tra::core
 {

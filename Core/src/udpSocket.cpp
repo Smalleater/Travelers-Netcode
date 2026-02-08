@@ -1,8 +1,9 @@
-#include "TRA/core/udpSocket.hpp"
+#include "TRA/netcode/core/udpSocket.hpp"
+
+#include "TRA/debugUtils.hpp"
 
 #include <cstdio>
 
-#include "TRA/debugUtils.hpp"
 #include "socketUtils.hpp"
 
 #undef max

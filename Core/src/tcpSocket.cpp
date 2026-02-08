@@ -1,9 +1,10 @@
-#include "TRA/core/tcpSocket.hpp"
+#include "TRA/netcode/core/tcpSocket.hpp"
+
+#include "TRA/debugUtils.hpp"
 
 #include <limits>
 #include <cstdio>
 
-#include "TRA/debugUtils.hpp"
 #include "socketUtils.hpp"
 
 #undef max

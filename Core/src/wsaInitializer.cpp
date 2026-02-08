@@ -1,4 +1,4 @@
-#include "TRA/core/wsaInitializer.hpp"
+#include "TRA/netcode/core/wsaInitializer.hpp"
 
 #ifdef _WIN32
 

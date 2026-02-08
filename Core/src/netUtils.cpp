@@ -1,7 +1,8 @@
-#include "TRA/core/netUtils.hpp"
+#include "TRA/netcode/core/netUtils.hpp"
 
 #include "TRA/debugUtils.hpp"
-#include "TRA/core/networkInclude.hpp"
+
+#include "TRA/netcode/core/networkInclude.hpp"
 
 namespace tra::core
 {

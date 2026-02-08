@@ -2,13 +2,13 @@
 #define TRA_CORE_UDP_SOCKET_HPP
 
 #include "TRA/export.hpp"
+#include "TRA/errorCode.hpp"
 
 #include <utility>
 #include <mutex>
 #include <string>
 
-#include "TRA/errorCode.hpp"
-#include "networkInclude.hpp"
+#include "TRA/netcode/core/networkInclude.hpp"
 
 namespace tra::core
 {
