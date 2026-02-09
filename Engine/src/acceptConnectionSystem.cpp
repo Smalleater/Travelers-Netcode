@@ -2,136 +2,82 @@
 
 #include "TRA/debugUtils.hpp"
 
+#include "TRA/ecs/world.hpp"
+
 #include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/netcode/engine/networkEcs.hpp"
-#include "TRA/netcode/engine/networkEcsUtils.hpp"
-
-#include "TRA/netcode/engine/networkRootComponentTag.hpp"
-#include "TRA/netcode/engine/newConnectionComponent.hpp"
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
 
 #define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	void AcceptConnectionSystem::update(NetworkEcs* _ecs)
+	void AcceptConnectionSystem::update(ecs::World* _world)
 	{
 		uint8_t acceptedConnections = 0;
 
-		EntityId querryEntityid = 0;
-		std::shared_ptr<NewConnectionComponentTag> newConnectionComponent = nullptr;
-
-		for (auto queryResult : _ecs->query<NewConnectionComponentTag>())
+		for (auto& [entity] : _world->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<tags::NewConnectionTag>{}))
 		{
-			querryEntityid = std::get<0>(queryResult);
-			newConnectionComponent = std::get<1>(queryResult);
-
-			ErrorCode removeResult = _ecs->removeComponentFromEntity<NewConnectionComponentTag>(querryEntityid);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("AcceptConnectionSystem::update: Failed to remove NewConnectionComponentTag from entity %I32u. ErrorCode: %d",
-					querryEntityid, static_cast<int>(removeResult));
-			}
+			_world->removeTag<tags::NewConnectionTag>(entity);
 		}
 
-		std::shared_ptr<TcpListenSocketComponent> tcpListenSocketComponent = nullptr;
+		std::vector<core::TcpSocket*> newSockets;
 
-		core::TcpSocket* clientSocket = nullptr;
-		EntityId newEntityId = 0;
-		ErrorCode errorCode = ErrorCode::Success;
-		std::shared_ptr<NetworkRootComponentTag> networkRootComponentTag = nullptr;
-		std::shared_ptr<TcpConnectSocketComponent> tcpSocketComponent = nullptr;
-		std::shared_ptr<SendTcpMessageComponent> sendMessageComponent = nullptr;
-		std::shared_ptr<ReceiveTcpMessageComponent> receiveMessageComponent = nullptr;
-
-		for (auto queryResult : _ecs->query<TcpListenSocketComponent>())
+		core::TcpSocket* newSocket = nullptr;
+		for (auto& [entity, socketPtr] : _world->queryEntities(
+			ecs::WithComponent<components::TcpListenSocketComponent>{}))
 		{
-			querryEntityid = std::get<0>(queryResult);
-			tcpListenSocketComponent = std::get<1>(queryResult);
-
 			acceptedConnections = 0;
 			while (acceptedConnections < MAX_ACCEPTED_CONNECTIONS_PAR_TICK)
 			{
-				clientSocket = nullptr;
-				std::pair<ErrorCode, int> intPairResult = tcpListenSocketComponent->m_tcpSocket->acceptSocket(&clientSocket);
-				if (intPairResult.first == ErrorCode::SocketWouldBlock)
+				newSocket = nullptr;
+
+				auto& acceptResult = socketPtr->m_tcpSocket->acceptSocket(&newSocket);
+				if (acceptResult.first == ErrorCode::SocketWouldBlock)
 				{
 					break;
 				}
-				else if (intPairResult.first != ErrorCode::Success)
+				else if (acceptResult.first != ErrorCode::Success)
 				{
 					TRA_ERROR_LOG("AcceptConnectionSystem::update: Failed to accept new connection on entity %I32u, ErrorCode: %d, Last socket error: %d",
-						querryEntityid, static_cast<int>(intPairResult.first), static_cast<int>(intPairResult.second));
+						entity.id(), static_cast<int>(acceptResult.first), static_cast<int>(acceptResult.second));
 					break;
 				}
 
-				auto setblockingResult = clientSocket->setBlocking(false);
-				if (setblockingResult.first != ErrorCode::Success)
+				auto& setBlockingResult = newSocket->setBlocking(false);
+				if (setBlockingResult.first != ErrorCode::Success)
 				{
 					TRA_ERROR_LOG("AcceptConnectionSystem::update: Failed to set non-blocking mode on accepted socket. ErrorCode: %d, Last socket error: %d",
-						static_cast<int>(setblockingResult.first), static_cast<int>(setblockingResult.second));
-					clientSocket->closeSocket();
-					delete clientSocket;
+						static_cast<int>(setBlockingResult.first), static_cast<int>(setBlockingResult.second));
+					newSocket->closeSocket();
+					delete newSocket;
 					continue;
 				}
 
-				newEntityId = _ecs->createEntity();
+				newSockets.push_back(newSocket);
 
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, std::make_shared<NetworkRootComponentTag>(), {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				tcpSocketComponent = std::make_shared<TcpConnectSocketComponent>();
-				tcpSocketComponent->m_tcpSocket = clientSocket;
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, tcpSocketComponent, {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, std::make_shared<ReceiveTcpMessageComponent>(), {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				sendMessageComponent = std::make_shared<SendTcpMessageComponent>();
-				sendMessageComponent->m_lastMessageByteSent = 0;
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, sendMessageComponent, {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, std::make_shared<NewConnectionComponentTag>(), {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				TRA_ENTITY_ADD_COMPONENT(_ecs, newEntityId, std::make_shared<ConnectedComponentTag>(), {
-					clientSocket->closeSocket();
-					delete clientSocket;
-					_ecs->destroyEntity(newEntityId);
-					continue;
-					});
-
-				tcpSocketComponent.reset();
-
-				acceptedConnections++;
-				TRA_INFO_LOG("NetworkEngine: Accepted new TCP connection. Entity ID: %I32u", newEntityId);
+				++acceptedConnections;
 			}
 		}
-	}
+
+		for (auto socket : newSockets)
+		{
+			ecs::Entity entity = _world->createEntity();
+
+			_world->addTag<tags::NetworkRootTag>(entity);
+			_world->addTag<tags::NewConnectionTag>(entity);
+			_world->addTag<tags::ConnectedTag>(entity);
+
+			_world->addComponent(entity, components::TcpConnectSocketComponent{ std::move(*socket) });
+			_world->addComponent(entity, components::ReceiveTcpMessageComponent{});
+			_world->addComponent(entity, components::SendTcpMessageComponent{});
+
+			TRA_INFO_LOG("NetworkEngine: Accepted new TCP connection. Entity ID: %I32u", entity.id());
+		}
 }

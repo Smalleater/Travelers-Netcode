@@ -1,34 +1,21 @@
 #include "internal/disconnectSystem.hpp"
 
+#include "TRA/ecs/world.hpp"
+
 #include "TRA/netcode/core/tcpSocket.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 
-#include "TRA/netcode/engine/networkEcs.hpp"
-#include "TRA/netcode/engine/disconnectedComponent.hpp"
-
-#include "internal/selfComponent.hpp"
-
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	void DisconnectSystem::update(NetworkEcs* _ecs)
+	void DisconnectSystem::update(ecs::World* _world)
 	{
-		EntityId entityId = 0;
-		ErrorCode removeResult;
-
-		for (auto queryResult : _ecs->query<DisconnectedComponentTag>())
+		for (auto& [entity] : _world->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<tags::DisconnectedTag>{},
+			ecs::WithoutTag<tags::SelfTag>{}))
 		{
-			entityId = std::get<0>(queryResult);
-
-			removeResult = _ecs->removeComponentFromEntity<DisconnectedComponentTag>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove DisconnectedComponentTag from entity %llu, ErrorCode: %d",
-					static_cast<unsigned long long>(entityId), static_cast<int>(removeResult));
-			}
-
-			if (!_ecs->hasComponent<SelfComponentTag>(entityId))
-			{
-				_ecs->destroyEntity(entityId);
-			}
+			_world->destroyEntity(entity);
 		}
 	}
 }

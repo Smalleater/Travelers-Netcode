@@ -1,18 +1,18 @@
-#ifndef TRA_NETCODE_ENGINE_MESSAGE_SYSTEM_HPP
-#define TRA_NETCODE_ENGINE_MESSAGE_SYSTEM_HPP
+#ifndef TRA_NETCODE_ENGINE_INTERNAL_MESSAGE_SYSTEM_HPP
+#define TRA_NETCODE_ENGINE_INTERNAL_MESSAGE_SYSTEM_HPP
 
-#include "internal/iNetworkSystem.hpp"
+#include "TRA/ecs/ISystem.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	struct SendTcpMessageSystem : public INetworkSystem
+	struct SendTcpMessageSystem : ecs::ISystem
 	{
-		void update(NetworkEcs* _ecs) override;
+		void update(ecs::World* _world) override;
 	};
 
-	struct ReceiveTcpMessageSystem : public INetworkSystem
+	struct ReceiveTcpMessageSystem : ecs::ISystem
 	{
-		void update(NetworkEcs* _ecs) override;
+		void update(ecs::World* _world) override;
 	};
 }
 

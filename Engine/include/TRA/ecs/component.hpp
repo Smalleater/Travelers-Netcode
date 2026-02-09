@@ -4,14 +4,11 @@
 #include "TRA/ecs/componentRegister.hpp"
 
 #define TRA_ECS_REGISTER_COMPONENT(NAME, ...) \
-namespace tra::ecs \
+struct NAME \
 { \
-	struct NAME \
-	{ \
-		__VA_ARGS__ \
-	private: \
-		static inline ComponentRegister<NAME> m_registrar{}; \
-	}; \
-} \
+	__VA_ARGS__ \
+private: \
+	static inline tra::ecs::ComponentRegister<NAME> m_registrar{}; \
+};
 
 #endif

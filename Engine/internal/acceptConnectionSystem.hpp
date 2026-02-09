@@ -1,13 +1,13 @@
-#ifndef TRA_NETCODE_ENGINE_ACCEPT_CONNECTION_SYSTEM_HPP
-#define TRA_NETCODE_ENGINE_ACCEPT_CONNECTION_SYSTEN_HPP
+#ifndef TRA_NETCODE_ENGINE_INTERNAL_ACCEPT_CONNECTION_SYSTEM_HPP
+#define TRA_NETCODE_ENGINE_INTERNAL_ACCEPT_CONNECTION_SYSTEN_HPP
 
-#include "internal/iNetworkSystem.hpp"
+#include "TRA/ecs/ISystem.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	struct AcceptConnectionSystem : INetworkSystem
+	struct AcceptConnectionSystem : ecs::ISystem
 	{
-		void update(NetworkEcs* _ecs) override;
+		void update(ecs::World* _world) override;
 	};
 }
 

@@ -1,23 +1,23 @@
 #include "internal/networkSystemRegistrar.hpp"
 
-#include "TRA/netcode/engine/networkEcs.hpp"
+#include "TRA/ecs/world.hpp"
 
 #include "internal/acceptConnectionSystem.hpp"
 #include "internal/messageSystem.hpp"
 #include "internal/pendingDisconnectSystem.hpp"
 #include "internal/disconnectSystem.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	void NetworkSystemRegistrar::registerNetworkSystems(NetworkEcs* _networkEcs)
+	void NetworkSystemRegistrar::registerNetworkSystems(ecs::World* _world)
 	{
 		// BeginUpdate
-		_networkEcs->registerBeginUpdateSystem(std::make_unique<DisconnectSystem>());
-		_networkEcs->registerBeginUpdateSystem(std::make_unique<PendingDisconnectSystem>());
-		_networkEcs->registerBeginUpdateSystem(std::make_unique<AcceptConnectionSystem>());
-		_networkEcs->registerBeginUpdateSystem(std::make_unique<ReceiveTcpMessageSystem>());
+		_world->addBeginSystem(std::make_unique<DisconnectSystem>());
+		_world->addBeginSystem(std::make_unique<PendingDisconnectSystem>());
+		_world->addBeginSystem(std::make_unique<AcceptConnectionSystem>());
+		_world->addBeginSystem(std::make_unique<ReceiveTcpMessageSystem>());
 
 		// EndUpdate
-		_networkEcs->registerEndUpdateSystem(std::make_shared<SendTcpMessageSystem>());
+		_world->addEndSystem(std::make_unique<SendTcpMessageSystem>());
 	}
 }

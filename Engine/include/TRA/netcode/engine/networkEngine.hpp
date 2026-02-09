@@ -6,10 +6,10 @@
 
 #include <cstdint>
 
+#include "TRA/ecs/world.hpp"
+
 #include "TRA/netcode/core/tcpSocket.hpp"
 #include "TRA/netcode/core/udpSocket.hpp"
-
-#include "TRA/netcode/engine/networkEcs.hpp"
 
 namespace tra::netcode::engine
 {
@@ -23,7 +23,7 @@ namespace tra::netcode::engine
 
 		TRA_API ErrorCode startTcpListenOnPort(uint16_t _port, bool _blocking);
 		TRA_API ErrorCode startTcpConnectToAddress(const std::string& _address, uint16_t _port, bool _blocking);
-		TRA_API ErrorCode startUdpOnPort(uint16_t _port, bool _blocking);
+		//TRA_API ErrorCode startUdpOnPort(uint16_t _port, bool _blocking);
 
 		TRA_API ErrorCode stopTcpListen();
 		TRA_API ErrorCode stopTcpConnect();
@@ -32,11 +32,8 @@ namespace tra::netcode::engine
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();
 
-		TRA_API EntityId createEntity();
-		TRA_API void destroyEntity(EntityId _entityId);
-
-		TRA_API ErrorCode sendTcpMessage(EntityId _entityId, std::shared_ptr<Message> _message);
-		TRA_API std::vector<std::shared_ptr<Message>> getTcpMessages(EntityId _entityId, const std::string& _messageType);
+		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entityId, std::shared_ptr<Message> _message);
+		TRA_API std::vector<std::shared_ptr<Message>> getTcpMessages(ecs::Entity _entity, const std::string& _messageType);
 
 		TRA_API EntityId getSelfEntityId();
 
@@ -65,11 +62,11 @@ namespace tra::netcode::engine
 		}
 
 	private:
-		core::UdpSocket* m_udpSocket;
+		//core::UdpSocket* m_udpSocket;
 
-		NetworkEcs* m_networkEcs;
+		std::unique_ptr<ecs::World> m_ecsWorld;
 
-		EntityId m_selfEntityId;
+		ecs::Entity m_selfEntity;
 	};
 }
 

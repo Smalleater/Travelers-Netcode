@@ -1,34 +1,32 @@
-#ifndef TRA_NETCODE_ENGINE_SOCKET_COMPONENT_HPP
-#define TRA_NETCODE_ENGINE_SOCKET_COMPONENT_HPP
+#ifndef TRA_NETCODE_ENGINE_INTERNAL_SOCKET_COMPONENT_HPP
+#define TRA_NETCODE_ENGINE_INTERNAL_SOCKET_COMPONENT_HPP
+
+#include "TRA/ecs/component.hpp"
 
 #include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/netcode/engine/iNetworkComponent.hpp"
-
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal::components
 {
-	struct TcpListenSocketComponent : public INetworkComponent
-	{
-		core::TcpSocket* m_tcpSocket;
+	TRA_ECS_REGISTER_COMPONENT(TcpListenSocketComponent,
+		std::unique_ptr<core::TcpSocket> m_tcpSocket;
 
 		TcpListenSocketComponent() : m_tcpSocket(nullptr) {}
-
 		~TcpListenSocketComponent()
 		{
 			if (m_tcpSocket)
 			{
 				m_tcpSocket->shutdownSocket();
 				m_tcpSocket->closeSocket();
-				delete m_tcpSocket;
 			}
 		}
-	};
+	)
 
-	struct TcpConnectSocketComponent : public INetworkComponent
-	{
-		core::TcpSocket* m_tcpSocket;
+	TRA_ECS_REGISTER_COMPONENT(TcpConnectSocketComponent,
+		std::unique_ptr<core::TcpSocket> m_tcpSocket;
 
-		TcpConnectSocketComponent() : m_tcpSocket(nullptr) {}
+		TcpConnectSocketComponent() = default;
+		TcpConnectSocketComponent(core::TcpSocket&& _tcpSocket) 
+			: m_tcpSocket(std::make_unique<core::TcpSocket>(std::move(_tcpSocket))) {}
 
 		~TcpConnectSocketComponent()
 		{
@@ -36,10 +34,9 @@ namespace tra::netcode::engine
 			{
 				m_tcpSocket->shutdownSocket();
 				m_tcpSocket->closeSocket();
-				delete m_tcpSocket;
 			}
 		}
-	};
+	)
 }
 
 #endif

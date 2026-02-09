@@ -1,62 +1,27 @@
 #include "internal/pendingDisconnectSystem.hpp"
 
-#include "TRA/netcode/engine/networkEcs.hpp"
-#include "TRA/netcode/engine/networkEcsUtils.hpp"
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
-#include "TRA/netcode/engine/disconnectedComponent.hpp"
+#include "TRA/ecs/world.hpp"
 
-#include "internal/pendingDisconnectComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
+
+#include "internal/tags.hpp"
 #include "internal/socketComponent.hpp"
-#include "internal/messageComponent.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	void PendingDisconnectSystem::update(NetworkEcs* _ecs)
+	void PendingDisconnectSystem::update(ecs::World* _world)
 	{
-		EntityId entityId = 0;
-		ErrorCode removeResult;
-
-		for (auto queryResult : _ecs->query<PendingDisconnectComponentTag, TcpConnectSocketComponent>())
+		for (auto& [entity, socketPtr] : _world->queryEntities(
+			ecs::WithComponent<components::TcpConnectSocketComponent>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<tags::PendingDisconnectTag, engine::tags::ConnectedTag>{}))
 		{
-			entityId = std::get<0>(queryResult);
+			_world->removeTag<tags::PendingDisconnectTag>(entity);
+			_world->removeTag<engine::tags::ConnectedTag>(entity);
 
-			removeResult = _ecs->removeComponentFromEntity<PendingDisconnectComponentTag>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove PendingDisconnectComponentTag from entity %I32u, ErrorCode: %d",
-					entityId, static_cast<int>(removeResult));
-			}
+			_world->addTag<engine::tags::DisconnectedTag>(entity);
 
-			removeResult = _ecs->removeComponentFromEntity<TcpConnectSocketComponent>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove TcpConnectSocketComponent from entity %I32u, ErrorCode: %d",
-					entityId, static_cast<int>(removeResult));
-			}
-
-			removeResult = _ecs->removeComponentFromEntity<SendTcpMessageComponent>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove SendTcpMessageComponent from entity %I32u, ErrorCode: %d",
-					entityId, static_cast<int>(removeResult));
-			}
-
-			removeResult = _ecs->removeComponentFromEntity<ReceiveTcpMessageComponent>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove ReceiveTcpMessageComponent from entity %I32u, ErrorCode: %d",
-					entityId, static_cast<int>(removeResult));
-			}
-
-			removeResult = _ecs->removeComponentFromEntity<ConnectedComponentTag>(entityId);
-			if (removeResult != ErrorCode::Success)
-			{
-				TRA_ERROR_LOG("DisconnectSystem::update: Failed to remove ConnectedComponentTag from entity %I32u, ErrorCode: %d",
-					entityId, static_cast<int>(removeResult));
-			}
-
-			TRA_ENTITY_ADD_COMPONENT(_ecs, entityId, std::make_shared<DisconnectedComponentTag>(), {});
-			TRA_INFO_LOG("NetworkEngine: Entity ID: %I32u disconnected", entityId);
+			TRA_INFO_LOG("NetworkEngine: Entity ID: %I32u disconnected", entity.id());
 		}
 	}
 }

@@ -5,9 +5,7 @@
 #include "TRA/netcode/core/netUtils.hpp"
 
 #include "TRA/netcode/engine/message.hpp"
-#include "TRA/netcode/engine/networkEcsUtils.hpp"
-#include "TRA/netcode/engine/networkRootComponentTag.hpp"
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 
 #ifdef _WIN32
 #include "TRA/netcode/core/wsaInitializer.hpp"
@@ -16,35 +14,35 @@
 #include "internal/networkSystemRegistrar.hpp"
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
-#include "internal/selfComponent.hpp"
 
 namespace tra::netcode::engine
 {
 	NetworkEngine::NetworkEngine()
 	{
-		m_udpSocket = nullptr;
+		//m_udpSocket = nullptr;
 
-		m_networkEcs = new NetworkEcs();
-		NetworkSystemRegistrar::registerNetworkSystems(m_networkEcs);
+		m_ecsWorld = std::make_unique<ecs::World>();
 
-		m_selfEntityId = m_networkEcs->createEntity();
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, std::make_shared<SelfComponentTag>(), {});
+		internal::NetworkSystemRegistrar::registerNetworkSystems(m_ecsWorld.get());
+
+		m_selfEntity = m_ecsWorld->createEntity();
+		m_ecsWorld->addTag<tags::SelfTag>(m_selfEntity);
 	}
 
 	NetworkEngine::~NetworkEngine()
 	{
-		delete m_udpSocket;
+		//delete m_udpSocket;
 
-		m_networkEcs->destroyEntity(m_selfEntityId);
+		m_ecsWorld->destroyEntity(m_selfEntity);
 
-		delete m_networkEcs;
+		m_ecsWorld.reset();
 	}
 
 	ErrorCode NetworkEngine::startTcpListenOnPort(uint16_t _port, bool _blocking)
 	{
-		if (m_networkEcs->hasComponent<TcpListenSocketComponent>(m_selfEntityId))
+		if (m_ecsWorld->hasComponent<internal::components::TcpListenSocketComponent>(m_selfEntity))
 		{
-			TRA_ERROR_LOG("NetworkEngine: Start TCP listen on port callrd but TCP listen socket is already open.");
+			TRA_ERROR_LOG("NetworkEngine: Start TCP listen on port called but TCP listen socket is already open.");
 			return ErrorCode::SocketAlreadyOpen;
 		}
 
@@ -64,12 +62,12 @@ namespace tra::netcode::engine
 		TRA_DEBUG_LOG("NetworkEngine: WSA initialized successfully.");
 #endif
 
-		std::shared_ptr<TcpListenSocketComponent> tcpListenSocketComponent = std::make_shared<TcpListenSocketComponent>();
-		tcpListenSocketComponent->m_tcpSocket = new core::TcpSocket();
+		internal::components::TcpListenSocketComponent socketComponent;
+		socketComponent.m_tcpSocket = std::make_unique<core::TcpSocket>();
 
 		std::pair<ErrorCode, int> intPairResult;
 
-		intPairResult = tcpListenSocketComponent->m_tcpSocket->bindSocket(_port);
+		intPairResult = socketComponent.m_tcpSocket->bindSocket(_port);
 		if (intPairResult.first != ErrorCode::Success)
 		{
 			TRA_ERROR_LOG("NetworkEngine: Failed to bind TCP listen socket on port %d. ErrorCode: %d", _port, static_cast<int>(intPairResult.first));
@@ -77,7 +75,7 @@ namespace tra::netcode::engine
 			return intPairResult.first;
 		}
 
-		intPairResult = tcpListenSocketComponent->m_tcpSocket->listenSocket();
+		intPairResult = socketComponent.m_tcpSocket->listenSocket();
 		if (intPairResult.first != ErrorCode::Success)
 		{
 			TRA_ERROR_LOG("NetworkEngine: Failed to listen on TCP socket. ErrorCode: %d", static_cast<int>(intPairResult.first));
@@ -85,7 +83,7 @@ namespace tra::netcode::engine
 			return intPairResult.first;
 		}
 
-		intPairResult = tcpListenSocketComponent->m_tcpSocket->setBlocking(_blocking);
+		intPairResult = socketComponent.m_tcpSocket->setBlocking(_blocking);
 		if (intPairResult.first != ErrorCode::Success)
 		{
 			TRA_ERROR_LOG("NetworkEngine: Failed to set TCP listen socket blocking mode. ErrorCode: %d", static_cast<int>(intPairResult.first));
@@ -93,19 +91,7 @@ namespace tra::netcode::engine
 			return intPairResult.first;
 		}
 
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, tcpListenSocketComponent, {
-			TRA_INFO_LOG("NetworkEngine: TCP listen socket was not listening on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
-
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, std::make_shared<ListeningComponentTag>(), {
-			TRA_INFO_LOG("NetworkEngine: TCP listen socket was not listening on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
+		m_ecsWorld->addComponent(m_selfEntity, std::move(socketComponent));
 
 		TRA_DEBUG_LOG("NetworkEngine: TCP listen socket started on port %d.", _port);
 		return ErrorCode::Success;
@@ -115,7 +101,7 @@ namespace tra::netcode::engine
 	{
 		TRA_ASSERT_REF_PTR_OR_COPIABLE(_address);
 
-		if (m_networkEcs->hasComponent<TcpConnectSocketComponent>(m_selfEntityId))
+		if (m_ecsWorld->hasComponent<internal::components::TcpConnectSocketComponent>(m_selfEntity))
 		{
 			TRA_ERROR_LOG("NetworkEngine: start TCP connect to address called but TCP connect socket is already open.");
 			return ErrorCode::SocketAlreadyOpen;
@@ -143,12 +129,12 @@ namespace tra::netcode::engine
 		TRA_DEBUG_LOG("NetworkEngine: WSA initialized successfully.");
 #endif
 
-		std::shared_ptr<TcpConnectSocketComponent> tcpSocketComponent = std::make_shared<TcpConnectSocketComponent>();
-		tcpSocketComponent->m_tcpSocket = new core::TcpSocket();
+		internal::components::TcpConnectSocketComponent socketComponent;
+		socketComponent.m_tcpSocket = std::make_unique<core::TcpSocket>();
 
 		std::pair<ErrorCode, int> intPairResult;
 
-		intPairResult = tcpSocketComponent->m_tcpSocket->connectTo(_address, _port);
+		intPairResult = socketComponent.m_tcpSocket->connectTo(_address, _port);
 		if (intPairResult.first != ErrorCode::Success)
 		{
 			TRA_ERROR_LOG("NetworkEngine: Failed to connect TCP socket to %s:%d. ErrorCode: %d", _address.c_str(), _port, static_cast<int>(intPairResult.first));
@@ -156,7 +142,7 @@ namespace tra::netcode::engine
 			return intPairResult.first;
 		}
 
-		intPairResult = tcpSocketComponent->m_tcpSocket->setBlocking(_blocking);
+		intPairResult = socketComponent.m_tcpSocket->setBlocking(_blocking);
 		if (intPairResult.first != ErrorCode::Success)
 		{
 			TRA_ERROR_LOG("NetworkEngine: Failed to set TCP connect socket blocking mode. ErrorCode: %d", static_cast<int>(intPairResult.first));
@@ -164,47 +150,19 @@ namespace tra::netcode::engine
 			return intPairResult.first;
 		}
 
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, tcpSocketComponent, {
-			TRA_INFO_LOG("NetworkEngine: TCP connect socket was not connected on port %d.", _port);
-			return ErrorCode::Failure;
-			}
-		);
+		m_ecsWorld->addComponent(m_selfEntity, std::move(socketComponent));
 
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, std::make_shared<NetworkRootComponentTag>(), {
-			TRA_INFO_LOG("NetworkEngine: TCP connect socket was not connected on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
+		m_ecsWorld->addComponent(m_selfEntity, internal::components::SendTcpMessageComponent{});
+		m_ecsWorld->addComponent(m_selfEntity, internal::components::ReceiveTcpMessageComponent{});
 
-		std::shared_ptr<SendTcpMessageComponent> sendMessageComponent = std::make_shared<SendTcpMessageComponent>();
-		sendMessageComponent->m_lastMessageByteSent = 0;
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, sendMessageComponent, {
-			TRA_INFO_LOG("NetworkEngine: TCP connect socket was not connected on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
-
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, std::make_shared<ReceiveTcpMessageComponent>(), {
-			TRA_INFO_LOG("NetworkEngine: TCP connect socket was not connected on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
-
-		TRA_ENTITY_ADD_COMPONENT(m_networkEcs, m_selfEntityId, std::make_shared<ConnectedComponentTag>(), {
-			TRA_INFO_LOG("NetworkEngine: TCP connect socket was not connected on port %d.", _port);
-			stopTcpListen();
-			return ErrorCode::Failure;
-			}
-		);
+		m_ecsWorld->addTag<tags::ConnectedTag>(m_selfEntity);
 
 		TRA_DEBUG_LOG("NetworkEngine: TCP connect socket connected to %s:%d.", _address.c_str(), _port);
+
 		return ErrorCode::Success;
 	}
 
-	ErrorCode NetworkEngine::startUdpOnPort(uint16_t _port, bool _blocking)
+	/*ErrorCode NetworkEngine::startUdpOnPort(uint16_t _port, bool _blocking)
 	{
 		if (m_udpSocket)
 		{
@@ -264,50 +222,21 @@ namespace tra::netcode::engine
 
 		TRA_DEBUG_LOG("NetworkEngine: UDP socket started on port %d.", _port);
 		return ErrorCode::Success;
-	}
+	}*/
 
 	ErrorCode NetworkEngine::stopTcpListen()
 	{
-		if (!m_networkEcs->hasComponent<TcpListenSocketComponent>(m_selfEntityId))
+		if (!m_ecsWorld->hasComponent<internal::components::TcpListenSocketComponent>(m_selfEntity))
 		{
 			TRA_DEBUG_LOG("NetworkEngine: Stop TCP listen called but TCP listen socket is not open.");
 			return ErrorCode::Success;
 		}
 
-		if (!m_networkEcs->hasComponent<ListeningComponentTag>(m_selfEntityId))
-		{
-			TRA_DEBUG_LOG("NetworkEngine: Stop TCP listen called but ListeningComponentTag is not present on self entity.");
-		}
-		else
-		{
-			m_networkEcs->removeComponentFromEntity<ListeningComponentTag>(m_selfEntityId);
-		}
+		auto socketComponentPtr = m_ecsWorld->getComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
+		socketComponentPtr->m_tcpSocket->shutdownSocket();
+		socketComponentPtr->m_tcpSocket->closeSocket();
 
-		auto getComponentResult = m_networkEcs->getComponentOfEntity<TcpListenSocketComponent>(m_selfEntityId);
-		if (getComponentResult.first != ErrorCode::Success)
-		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to get TcpListentSocketComponent for self entity. ErrorCode: %d", static_cast<int>(getComponentResult.first));
-			return getComponentResult.first;
-		}
-
-		std::shared_ptr<TcpListenSocketComponent> tcpSocketComponent = getComponentResult.second.lock();
-		if (!tcpSocketComponent)
-		{
-			TRA_ERROR_LOG("NetworkEngine: TcpListentSocketComponent for self entity is no longer valid.");
-			return ErrorCode::InvalidComponent;
-		}
-
-		tcpSocketComponent->m_tcpSocket->shutdownSocket();
-		tcpSocketComponent->m_tcpSocket->closeSocket();
-		delete tcpSocketComponent->m_tcpSocket;
-		tcpSocketComponent->m_tcpSocket = nullptr;
-
-		ErrorCode removeResult = m_networkEcs->removeComponentFromEntity<TcpListenSocketComponent>(m_selfEntityId);
-		if (removeResult != ErrorCode::Success)
-		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to remove TcpListentSocketComponent from self entity. ErrorCode: %d", static_cast<int>(removeResult));
-			return removeResult;
-		}
+		m_ecsWorld->removeComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
 
 #ifdef _WIN32
 		core::WSAInitializer::Get()->CleanUp();
@@ -393,7 +322,7 @@ namespace tra::netcode::engine
 
 	void NetworkEngine::beginUpdate()
 	{
-		m_networkEcs->beginUpdate();
+		m_ecsWorld ->beginUpdate();
 	}
 
 	void NetworkEngine::endUpdate()
@@ -401,17 +330,7 @@ namespace tra::netcode::engine
 		m_networkEcs->endUpdate();
 	}
 
-	EntityId NetworkEngine::createEntity()
-	{
-		return m_networkEcs->createEntity();
-	}
-
-	void NetworkEngine::destroyEntity(EntityId _entityId)
-	{
-		m_networkEcs->destroyEntity(_entityId);
-	}
-
-	ErrorCode NetworkEngine::sendTcpMessage(EntityId _entityId, std::shared_ptr<Message> _message)
+	ErrorCode NetworkEngine::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<Message> _message)
 	{
 		auto getSendTcpMessageComponentResult = m_networkEcs->getComponentOfEntity<SendTcpMessageComponent>(_entityId);
 		if (getSendTcpMessageComponentResult.first != ErrorCode::Success)

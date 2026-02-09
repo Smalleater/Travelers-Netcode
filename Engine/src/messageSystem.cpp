@@ -2,152 +2,125 @@
 
 #include "TRA/debugUtils.hpp"
 
+#include "TRA/ecs/world.hpp"
+
 #include "TRA/netcode/core/tcpSocket.hpp"
 
-#include "TRA/netcode/engine/networkEcs.hpp"
-#include "TRA/netcode/engine/networkEcsUtils.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 
-#include "internal/messageSerializer.hpp"
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
-#include "internal/pendingDisconnectComponent.hpp"
+#include "internal/tags.hpp"
+#include "internal/messageSerializer.hpp"
 
 #define TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK 32
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	void SendTcpMessageSystem::update(NetworkEcs* _ecs)
+	void SendTcpMessageSystem::update(ecs::World* _world)
 	{
-		EntityId entityId = 0;
-
-		std::shared_ptr<TcpConnectSocketComponent> tcpSocketComponent = nullptr;
-		std::shared_ptr<SendTcpMessageComponent> sendTcpMessageComponent = nullptr;
-
-		std::vector<uint8_t> serializedMessage;
-
-		for (auto queryResult : _ecs->query<TcpConnectSocketComponent, SendTcpMessageComponent>())
+		for (auto& [entity, socketPtr, sendMessagePtr] : _world->queryEntities(
+			ecs::WithComponent<components::TcpConnectSocketComponent, components::SendTcpMessageComponent>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<engine::tags::ConnectedTag>{},
+			ecs::WithoutTag<tags::PendingDisconnectTag>{}))
 		{
-			entityId = std::get<0>(queryResult);
-			if (_ecs->hasComponent<PendingDisconnectComponentTag>(entityId))
+			std::vector<uint8_t> serializedMessage;
+			for (auto& message : sendMessagePtr->m_messagesToSend)
 			{
-				continue;
-			}
-
-			tcpSocketComponent = std::get<1>(queryResult);
-			sendTcpMessageComponent = std::get<2>(queryResult);
-
-			for (auto message : sendTcpMessageComponent->m_messagesToSend)
-			{
-				serializedMessage.clear();
 				serializedMessage = MessageSerializer::serializePayload(*message.get());
 				serializedMessage = MessageSerializer::serializeForNetwork(serializedMessage);
-				sendTcpMessageComponent->m_serializedToSend.push_back(serializedMessage);
+
+				sendMessagePtr->m_serializedToSend.push_back(serializedMessage);
+
+				serializedMessage.clear();
 			}
 
-			sendTcpMessageComponent->m_messagesToSend.clear();
+			sendMessagePtr->m_messagesToSend.clear();
 
-			for (auto messageIt = sendTcpMessageComponent->m_serializedToSend.begin(); messageIt != sendTcpMessageComponent->m_serializedToSend.end();)
+			for (auto& messageIt = sendMessagePtr->m_serializedToSend.begin(); messageIt != sendMessagePtr->m_serializedToSend.end();)
 			{
 				int byteSent = 0;
-				auto sendDataResult = tcpSocketComponent->m_tcpSocket->sendData(messageIt->data() + sendTcpMessageComponent->m_lastMessageByteSent,
-					messageIt->size() - sendTcpMessageComponent->m_lastMessageByteSent, byteSent);
+				auto sendDataResult = socketPtr->m_tcpSocket->sendData(messageIt->data() + sendMessagePtr->m_lastMessageByteSent,
+					messageIt->size() - sendMessagePtr->m_lastMessageByteSent, byteSent);
 
 				if (sendDataResult.first != ErrorCode::Success)
 				{
 					if (sendDataResult.first == ErrorCode::SocketSendPartial)
 					{
-						sendTcpMessageComponent->m_lastMessageByteSent = byteSent;
+						sendMessagePtr->m_lastMessageByteSent = byteSent;
 						TRA_DEBUG_LOG("SendTcpMessageSystem::update: Partial data sent for entity %llu, BytesSent: %d/%llu",
-							static_cast<unsigned long long>(entityId), byteSent, static_cast<unsigned long long>(messageIt->size()));
+							static_cast<unsigned long long>(entity.id()), byteSent, static_cast<unsigned long long>(messageIt->size()));
 					}
-					else if (sendDataResult.first == ErrorCode::SocketConnectionClosed)
+					else 
 					{
-						TRA_ENTITY_ADD_COMPONENT(_ecs, entityId, std::make_shared<PendingDisconnectComponentTag>(), {});
-					}
-					else
-					{
-						TRA_ERROR_LOG("SendTcpMessageSystem::update: Failed to send data for entity %llu, ErrorCode: %d, Last socket error: %d",
-							static_cast<unsigned long long>(entityId), static_cast<int>(sendDataResult.first), static_cast<int>(sendDataResult.second));
-
-						TRA_ENTITY_ADD_COMPONENT(_ecs, entityId, std::make_shared<PendingDisconnectComponentTag>(), {});
+						if (sendDataResult.first != ErrorCode::SocketConnectionClosed)
+						{
+							TRA_ERROR_LOG("SendTcpMessageSystem::update: Failed to send data for entity %llu, ErrorCode: %d, Last socket error: %d",
+								static_cast<unsigned long long>(entity.id()), static_cast<int>(sendDataResult.first), static_cast<int>(sendDataResult.second));
+						}
+						
+						_world->addTag<tags::PendingDisconnectTag>(entity);
 					}
 
 					break;
 				}
 
-				messageIt = sendTcpMessageComponent->m_serializedToSend.erase(messageIt);
+				messageIt = sendMessagePtr->m_serializedToSend.erase(messageIt);
 			}
 		}
 	}
 
-	void ReceiveTcpMessageSystem::update(NetworkEcs* _ecs)
+	void ReceiveTcpMessageSystem::update(ecs::World* _world)
 	{
-		uint8_t messagesReceived = 0;
-
-		EntityId entityId = 0;
-		std::shared_ptr<TcpConnectSocketComponent> tcpSocketComponent = nullptr;
-		std::shared_ptr<ReceiveTcpMessageComponent> receiveTcpMessageComponent = nullptr;
-
-		std::vector<uint8_t> newReceivedBuffer;
-		std::vector<uint8_t> payload;
-
-		size_t consumedBytes = 0;
-
-		for (auto queryResult : _ecs->query<TcpConnectSocketComponent, ReceiveTcpMessageComponent>())
+		for (auto& [entity, socketPtr, receiveMessagePtr] : _world->queryEntities(
+			ecs::WithComponent<components::TcpConnectSocketComponent, components::ReceiveTcpMessageComponent>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<engine::tags::ConnectedTag>{},
+			ecs::WithoutTag<tags::PendingDisconnectTag>{}))
 		{
-			entityId = std::get<0>(queryResult);
-			if (_ecs->hasComponent<PendingDisconnectComponentTag>(entityId))
+			receiveMessagePtr->m_receivedMessages.clear();
+
+			std::vector<uint8_t> newReceivedBuffer;
+
+			auto receiveDataResult = socketPtr->m_tcpSocket->receiveData(newReceivedBuffer);
+			if (receiveDataResult.first != ErrorCode::Success && receiveDataResult.first != ErrorCode::SocketWouldBlock)
 			{
+				if (receiveDataResult.first != ErrorCode::SocketConnectionClosed)
+				{
+					TRA_ERROR_LOG("ReceiveTcpMessageSystem::update: Failed to receive data for entity %llu, ErrorCode: %d, Last socket error: %d",
+						static_cast<unsigned long long>(entity.id()), static_cast<int>(receiveDataResult.first), static_cast<int>(receiveDataResult.second));
+				}
+
+				_world->addTag<tags::PendingDisconnectTag>(entity);
+
 				continue;
 			}
 
-			tcpSocketComponent = std::get<1>(queryResult);
-			receiveTcpMessageComponent = std::get<2>(queryResult);
+			receiveMessagePtr->m_receivedBuffer.insert(receiveMessagePtr->m_receivedBuffer.end(), newReceivedBuffer.begin(), newReceivedBuffer.end());
+			
+			std::vector<uint8_t> payload;
+			size_t consumedBytes = 0;
 
-			receiveTcpMessageComponent->m_receivedMessages.clear();
-
-			auto receiveDataResult = tcpSocketComponent->m_tcpSocket->receiveData(newReceivedBuffer);
-			if (receiveDataResult.first != ErrorCode::Success && receiveDataResult.first != ErrorCode::SocketWouldBlock)
+			while (true)
 			{
-				if (receiveDataResult.first == ErrorCode::SocketConnectionClosed)
-				{
-					TRA_ENTITY_ADD_COMPONENT(_ecs, entityId, std::make_shared<PendingDisconnectComponentTag>(), {});
-					continue;
-				}
-				else
-				{
-					TRA_ERROR_LOG("ReceiveTcpMessageSystem::update: Failed to receive data for entity %llu, ErrorCode: %d, Last socket error: %d",
-						static_cast<unsigned long long>(entityId), static_cast<int>(receiveDataResult.first), static_cast<int>(receiveDataResult.second));
-					
-					TRA_ENTITY_ADD_COMPONENT(_ecs, entityId, std::make_shared<PendingDisconnectComponentTag>(), {});
-					continue;
-				}
-			}
-
-			receiveTcpMessageComponent->m_receivedBuffer.insert(receiveTcpMessageComponent->m_receivedBuffer.end(),
-				newReceivedBuffer.begin(), newReceivedBuffer.end());
-
-			messagesReceived = 0;
-			while (messagesReceived < TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK)
-			{
-				if (!MessageSerializer::getPayloadFromNetworkBuffer(receiveTcpMessageComponent->m_receivedBuffer, payload, consumedBytes))
+				if (!MessageSerializer::getPayloadFromNetworkBuffer(receiveMessagePtr->m_receivedBuffer, payload, consumedBytes))
 				{
 					break;
 				}
 
-				receiveTcpMessageComponent->m_receivedBuffer.erase(receiveTcpMessageComponent->m_receivedBuffer.begin(), 
-					receiveTcpMessageComponent->m_receivedBuffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(consumedBytes));
+				receiveMessagePtr->m_receivedBuffer.erase(receiveMessagePtr->m_receivedBuffer.begin(),
+					receiveMessagePtr->m_receivedBuffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(consumedBytes));
 
-				std::shared_ptr<Message> newMessage = MessageSerializer::deserializePayload(payload);
+				std::unique_ptr<Message> newMessage = MessageSerializer::deserializePayload(payload);
 				if (!newMessage)
 				{
 					TRA_ERROR_LOG("ReceiveTcpMessageSystem::update: Failed to deserialize message for entity %llu",
-						static_cast<unsigned long long>(entityId));
+						static_cast<unsigned long long>(entity.id()));
 					continue;
 				}
 
-				receiveTcpMessageComponent->m_receivedMessages[newMessage->getType()].push_back(newMessage);
-				++messagesReceived;
+				receiveMessagePtr->m_receivedMessages[newMessage->getType()].push_back(newMessage);
 			}
 		}
 	}

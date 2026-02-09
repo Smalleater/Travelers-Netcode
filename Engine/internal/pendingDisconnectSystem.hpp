@@ -1,13 +1,13 @@
-#ifndef TRA_NETCODE_ENGINE_PENDING_DISCONNECT_SYSTEM_HPP
-#define TRA_NETCODE_ENGINE_PENDING_DISCONNECT_SYSTEM_HPP
+#ifndef TRA_NETCODE_ENGINE_INTERNAL_PENDING_DISCONNECT_SYSTEM_HPP
+#define TRA_NETCODE_ENGINE_INTERNAL_PENDING_DISCONNECT_SYSTEM_HPP
 
-#include "internal/iNetworkSystem.hpp"
+#include "TRA/ecs/ISystem.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
-	struct PendingDisconnectSystem : INetworkSystem
+	struct PendingDisconnectSystem : ecs::ISystem
 	{
-		void update(NetworkEcs* _ecs) override;
+		void update(ecs::World* _world) override;
 	};
 }
 
