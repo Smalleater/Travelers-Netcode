@@ -1,8 +1,9 @@
-#include "TRA/server/server.hpp"
+#include "TRA/netcode/server/server.hpp"
 
 #include "TRA/debugUtils.hpp"
-#include "TRA/engine/connectionStatusComponent.hpp"
-#include "TRA/engine/message.hpp"
+
+#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/message.hpp"
 
 namespace tra::server
 {

@@ -45,7 +45,7 @@ add_custom_command(TARGET tra_server POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
     $<TARGET_LINKER_FILE:tra_server> ${COMMON_EXPORT_LIB_DIR}/)
 
-file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/TRA/server/*")
+file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/TRA/netcode/server/*")
 add_custom_command(TARGET tra_server POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${HEADER_FILES} ${COMMON_EXPORT_INCLUDE_DIR}/server/)

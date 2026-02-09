@@ -2,12 +2,12 @@
 #define TRA_SERVER_SERVER_HPP
 
 #include "TRA/export.hpp"
+#include "TRA/errorCode.hpp"
 
 #include <cstdint>
 #include <unordered_map>
 
-#include "TRA/errorCode.hpp"
-#include "TRA/engine/networkEngine.hpp"
+#include "TRA/netcode/engine/networkEngine.hpp"
 
 namespace tra::engine
 {

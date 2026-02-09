@@ -1,7 +1,8 @@
-#include "TRA/client/client.hpp"
+#include "TRA/netcode/client/client.hpp"
 
 #include "TRA/debugUtils.hpp"
-#include "TRA/engine/connectionStatusComponent.hpp"
+
+#include "TRA/netcode/engine/connectionStatusComponent.hpp"
 
 namespace tra::client
 {

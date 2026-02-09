@@ -2,12 +2,12 @@
 #define TRA_CLIENT_CLIENT_HPP
 
 #include "TRA/export.hpp"
+#include "TRA/errorCode.hpp"
 
 #include <string>
 #include <cstdint>
 
-#include "TRA/errorCode.hpp"
-#include "TRA/engine/networkEngine.hpp"
+#include "TRA/netcode/engine/networkEngine.hpp"
 
 namespace tra::client
 {
