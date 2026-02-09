@@ -1,13 +1,13 @@
-#include "pendingDisconnectSystem.hpp"
+#include "internal/pendingDisconnectSystem.hpp"
 
 #include "TRA/netcode/engine/networkEcs.hpp"
 #include "TRA/netcode/engine/networkEcsUtils.hpp"
 #include "TRA/netcode/engine/connectionStatusComponent.hpp"
 #include "TRA/netcode/engine/disconnectedComponent.hpp"
 
-#include "pendingDisconnectComponent.hpp"
-#include "socketComponent.hpp"
-#include "messageComponent.hpp"
+#include "internal/pendingDisconnectComponent.hpp"
+#include "internal/socketComponent.hpp"
+#include "internal/messageComponent.hpp"
 
 namespace tra::netcode::engine
 {

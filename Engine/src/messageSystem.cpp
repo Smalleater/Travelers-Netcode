@@ -1,4 +1,4 @@
-#include "messageSystem.hpp"
+#include "internal/messageSystem.hpp"
 
 #include "TRA/debugUtils.hpp"
 
@@ -7,10 +7,10 @@
 #include "TRA/netcode/engine/networkEcs.hpp"
 #include "TRA/netcode/engine/networkEcsUtils.hpp"
 
-#include "messageSerializer.hpp"
-#include "socketComponent.hpp"
-#include "messageComponent.hpp"
-#include "pendingDisconnectComponent.hpp"
+#include "internal/messageSerializer.hpp"
+#include "internal/socketComponent.hpp"
+#include "internal/messageComponent.hpp"
+#include "internal/pendingDisconnectComponent.hpp"
 
 #define TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK 32
 

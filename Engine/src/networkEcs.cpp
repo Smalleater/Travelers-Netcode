@@ -2,8 +2,8 @@
 
 #include "TRA/netcode/engine/networkEcsUtils.hpp"
 
-#include "iNetworkSystem.hpp"
-#include "destroyComponentTag.hpp"
+#include "internal/iNetworkSystem.hpp"
+#include "internal/destroyComponentTag.hpp"
 
 namespace tra::netcode::engine
 {

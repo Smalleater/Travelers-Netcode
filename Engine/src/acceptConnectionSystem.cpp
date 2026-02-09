@@ -1,4 +1,4 @@
-#include "acceptConnectionSystem.hpp"
+#include "internal/acceptConnectionSystem.hpp"
 
 #include "TRA/debugUtils.hpp"
 
@@ -11,8 +11,8 @@
 #include "TRA/netcode/engine/newConnectionComponent.hpp"
 #include "TRA/netcode/engine/connectionStatusComponent.hpp"
 
-#include "socketComponent.hpp"
-#include "messageComponent.hpp"
+#include "internal/socketComponent.hpp"
+#include "internal/messageComponent.hpp"
 
 #define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
 

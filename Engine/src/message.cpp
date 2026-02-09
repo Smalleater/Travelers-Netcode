@@ -1,6 +1,6 @@
 #include "TRA/netcode/engine/message.hpp"
 
-#include "messageFactory.hpp"
+#include "internal/messageFactory.hpp"
 
 namespace tra::netcode::engine
 {

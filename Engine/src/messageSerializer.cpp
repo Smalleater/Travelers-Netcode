@@ -1,4 +1,4 @@
-#include "messageSerializer.hpp"
+#include "internal/messageSerializer.hpp"
 
 #include "TRA/debugUtils.hpp"
 

@@ -1,7 +1,7 @@
 #ifndef TRA_NETCODE_ENGINE_MESSAGE_SERIALIZER_HPP
 #define TRA_NETCODE_ENGINE_MESSAGE_SERIALIZER_HPP
 
-#include "messageFactory.hpp"
+#include "internal/messageFactory.hpp"
 
 namespace tra::netcode::engine
 {

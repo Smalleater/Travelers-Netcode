@@ -19,7 +19,7 @@ target_include_directories(tra_engine
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/internal
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Define export macro for DLL/SO symbol visibility

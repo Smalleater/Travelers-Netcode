@@ -13,10 +13,10 @@
 #include "TRA/netcode/core/wsaInitializer.hpp"
 #endif
 
-#include "networkSystemRegistrar.hpp"
-#include "socketComponent.hpp"
-#include "messageComponent.hpp"
-#include "selfComponent.hpp"
+#include "internal/networkSystemRegistrar.hpp"
+#include "internal/socketComponent.hpp"
+#include "internal/messageComponent.hpp"
+#include "internal/selfComponent.hpp"
 
 namespace tra::netcode::engine
 {

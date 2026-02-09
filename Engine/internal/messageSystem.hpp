@@ -1,7 +1,7 @@
 #ifndef TRA_NETCODE_ENGINE_MESSAGE_SYSTEM_HPP
 #define TRA_NETCODE_ENGINE_MESSAGE_SYSTEM_HPP
 
-#include "iNetworkSystem.hpp"
+#include "internal/iNetworkSystem.hpp"
 
 namespace tra::netcode::engine
 {

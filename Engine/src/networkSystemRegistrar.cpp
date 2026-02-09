@@ -1,11 +1,11 @@
-#include "networkSystemRegistrar.hpp"
+#include "internal/networkSystemRegistrar.hpp"
 
 #include "TRA/netcode/engine/networkEcs.hpp"
 
-#include "acceptConnectionSystem.hpp"
-#include "messageSystem.hpp"
-#include "pendingDisconnectSystem.hpp"
-#include "disconnectSystem.hpp"
+#include "internal/acceptConnectionSystem.hpp"
+#include "internal/messageSystem.hpp"
+#include "internal/pendingDisconnectSystem.hpp"
+#include "internal/disconnectSystem.hpp"
 
 namespace tra::netcode::engine
 {
