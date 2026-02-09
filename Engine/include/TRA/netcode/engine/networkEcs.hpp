@@ -1,5 +1,5 @@
-#ifndef TRA_ENGINE_NETWORK_ECS_HPP
-#define TRA_ENGINE_NETWORK_ECS_HPP
+#ifndef TRA_NETCODE_ENGINE_NETWORK_ECS_HPP
+#define TRA_NETCODE_ENGINE_NETWORK_ECS_HPP
 
 #include "TRA/export.hpp"
 #include "TRA/errorCode.hpp"
@@ -13,7 +13,7 @@
 #include <memory>
 #include <utility>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	using EntityId = uint32_t;
 

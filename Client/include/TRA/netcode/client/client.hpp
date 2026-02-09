@@ -1,5 +1,5 @@
-#ifndef TRA_CLIENT_CLIENT_HPP
-#define TRA_CLIENT_CLIENT_HPP
+#ifndef TRA_NETCODE_CLIENT_CLIENT_HPP
+#define TRA_NETCODE_CLIENT_CLIENT_HPP
 
 #include "TRA/export.hpp"
 #include "TRA/errorCode.hpp"
@@ -9,7 +9,7 @@
 
 #include "TRA/netcode/engine/networkEngine.hpp"
 
-namespace tra::client
+namespace tra::netcode::client
 {
 	using EntityId = uint32_t;
 

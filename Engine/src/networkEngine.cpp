@@ -18,7 +18,7 @@
 #include "messageComponent.hpp"
 #include "selfComponent.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	NetworkEngine::NetworkEngine()
 	{

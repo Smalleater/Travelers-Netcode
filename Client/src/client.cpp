@@ -4,7 +4,7 @@
 
 #include "TRA/netcode/engine/connectionStatusComponent.hpp"
 
-namespace tra::client
+namespace tra::netcode::client
 {
 	Client* Client::m_singleton = nullptr;
 

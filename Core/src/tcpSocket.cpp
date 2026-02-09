@@ -9,7 +9,7 @@
 
 #undef max
 
-namespace tra::core
+namespace tra::netcode::core
 {
 	TcpSocket::TcpSocket()
 	{

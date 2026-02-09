@@ -1,9 +1,9 @@
-#ifndef TRA_ENGINE_I_NETWORK_SYSTEM_HPP
-#define TRA_ENGINE_I_NETWORK_SYSTEM_HPP
+#ifndef TRA_NETCODE_ENGINE_I_NETWORK_SYSTEM_HPP
+#define TRA_NETCODE_ENGINE_I_NETWORK_SYSTEM_HPP
 
 #include <cstdint>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	using EntityId = uint32_t;
 

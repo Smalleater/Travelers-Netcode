@@ -1,9 +1,9 @@
-#ifndef TRA_ENGINE_ACCEPT_CONNECTION_SYSTEM_HPP
-#define TRA_ENGINE_ACCEPT_CONNECTION_SYSTEN_HPP
+#ifndef TRA_NETCODE_ENGINE_ACCEPT_CONNECTION_SYSTEM_HPP
+#define TRA_NETCODE_ENGINE_ACCEPT_CONNECTION_SYSTEN_HPP
 
 #include "iNetworkSystem.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	struct AcceptConnectionSystem : INetworkSystem
 	{

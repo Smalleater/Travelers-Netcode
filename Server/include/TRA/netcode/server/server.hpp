@@ -1,5 +1,5 @@
-#ifndef TRA_SERVER_SERVER_HPP
-#define TRA_SERVER_SERVER_HPP
+#ifndef TRA_NETCODE_SERVER_SERVER_HPP
+#define TRA_NETCODE_SERVER_SERVER_HPP
 
 #include "TRA/export.hpp"
 #include "TRA/errorCode.hpp"
@@ -14,7 +14,7 @@ namespace tra::engine
 	struct Message;
 }
 
-namespace tra::server
+namespace tra::netcode::server
 {
 	using EntityId = uint32_t;
 

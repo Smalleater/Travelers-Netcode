@@ -16,7 +16,7 @@
 
 #define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	void AcceptConnectionSystem::update(NetworkEcs* _ecs)
 	{

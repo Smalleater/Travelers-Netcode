@@ -4,7 +4,7 @@
 
 #include "TRA/netcode/core/networkInclude.hpp"
 
-namespace tra::core
+namespace tra::netcode::core
 {
 	namespace NetUtils
 	{

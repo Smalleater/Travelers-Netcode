@@ -8,7 +8,7 @@
 
 #undef max
 
-namespace tra::core
+namespace tra::netcode::core
 {
     UdpSocket::UdpSocket()
     {

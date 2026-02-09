@@ -14,7 +14,7 @@
 
 #define TRA_MAX_TCP_MESSAGES_TO_RECEIVE_PAR_TICK 32
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	void SendTcpMessageSystem::update(NetworkEcs* _ecs)
 	{

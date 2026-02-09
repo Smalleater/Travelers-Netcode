@@ -2,7 +2,7 @@
 
 #include "TRA/debugUtils.hpp"
 
-namespace tra::core
+namespace tra::netcode::core
 {
 	int SocketUtils::getLastSocketError()
 	{

@@ -5,7 +5,7 @@
 #include "TRA/netcode/engine/connectionStatusComponent.hpp"
 #include "TRA/netcode/engine/message.hpp"
 
-namespace tra::server
+namespace tra::netcode::server
 {
 	Server* Server::m_singleton = nullptr;
 

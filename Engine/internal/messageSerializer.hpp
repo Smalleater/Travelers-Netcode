@@ -1,9 +1,9 @@
-#ifndef TRA_ENGINE_MESSAGE_SERIALIZER_HPP
-#define TRA_ENGINE_MESSAGE_SERIALIZER_HPP
+#ifndef TRA_NETCODE_ENGINE_MESSAGE_SERIALIZER_HPP
+#define TRA_NETCODE_ENGINE_MESSAGE_SERIALIZER_HPP
 
 #include "messageFactory.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
     class MessageSerializer
     {

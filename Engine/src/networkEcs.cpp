@@ -5,7 +5,7 @@
 #include "iNetworkSystem.hpp"
 #include "destroyComponentTag.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	EntityId NetworkEcs::createEntity()
 	{

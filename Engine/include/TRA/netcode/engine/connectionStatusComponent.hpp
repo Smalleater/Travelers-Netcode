@@ -1,9 +1,9 @@
-#ifndef TRA_ENGINE_CONNECTION_STATUS_COMPONENT_HPP
-#define TRA_ENGINE_CONNECTION_STATUS_COMPONENT_HPP
+#ifndef TRA_NETCODE_ENGINE_CONNECTION_STATUS_COMPONENT_HPP
+#define TRA_NETCODE_ENGINE_CONNECTION_STATUS_COMPONENT_HPP
 
 #include "TRA/netcode/engine/iNetworkComponent.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	struct ConnectedComponentTag : INetworkComponent
 	{

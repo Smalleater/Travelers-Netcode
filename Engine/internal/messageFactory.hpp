@@ -1,5 +1,5 @@
-#ifndef TRA_ENGINE_MESSAGE_FACTORY_HPP
-#define TRA_ENGINE_MESSAGE_FACTORY_HPP
+#ifndef TRA_NETCODE_ENGINE_MESSAGE_FACTORY_HPP
+#define TRA_NETCODE_ENGINE_MESSAGE_FACTORY_HPP
 
 #include <functional>
 #include <memory>
@@ -9,7 +9,7 @@
 
 #include "messageHeader.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
     class MessageFactory
     {

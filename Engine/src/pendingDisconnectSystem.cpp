@@ -9,7 +9,7 @@
 #include "socketComponent.hpp"
 #include "messageComponent.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	void PendingDisconnectSystem::update(NetworkEcs* _ecs)
 	{

@@ -1,5 +1,5 @@
-#ifndef TRA_ENGINE_MESSAGE_HPP
-#define TRA_ENGINE_MESSAGE_HPP
+#ifndef TRA_NETCODE_ENGINE_MESSAGE_HPP
+#define TRA_NETCODE_ENGINE_MESSAGE_HPP
 
 #include "TRA/export.hpp"
 #include "TRA/debugUtils.hpp"
@@ -13,7 +13,7 @@
 #include <functional>
 #include <algorithm>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	using FieldValue = std::variant<int, float, std::string>;
 	using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;

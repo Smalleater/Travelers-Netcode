@@ -7,7 +7,7 @@
 #include "pendingDisconnectSystem.hpp"
 #include "disconnectSystem.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	void NetworkSystemRegistrar::registerNetworkSystems(NetworkEcs* _networkEcs)
 	{

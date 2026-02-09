@@ -1,5 +1,5 @@
-#ifndef TRA_ENGINE_MESSAGE_COMPONENT_HPP
-#define TRA_ENGINE_MESSAGE_COMPONENT_HPP
+#ifndef TRA_NETCODE_ENGINE_MESSAGE_COMPONENT_HPP
+#define TRA_NETCODE_ENGINE_MESSAGE_COMPONENT_HPP
 
 #include <vector>
 #include <cstdint>
@@ -7,7 +7,7 @@
 
 #include "TRA/netcode/engine/iNetworkComponent.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	using EntityId = uint32_t;
 	struct Message;

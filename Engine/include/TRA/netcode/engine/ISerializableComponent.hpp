@@ -1,12 +1,12 @@
-#ifndef TRA_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
-#define TRA_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
+#ifndef TRA_NETCODE_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
+#define TRA_NETCODE_ENGINE_I_SERIALIZABLE_COMPONENT_HPP
 
 #include "TRA/netcode/engine/INetworkComponent.hpp"
 
 #include <vector>
 #include <cstdint>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	struct ISerializableComponent : public INetworkComponent
 	{

@@ -1,7 +1,7 @@
-#ifndef TRA_ENGINE_NETWORK_SYSTEM_REGISTRAR_HPP
-#define TRA_ENGINE_NETWORK_SYSTEM_REGISTRAR_HPP
+#ifndef TRA_NETCODE_ENGINE_NETWORK_SYSTEM_REGISTRAR_HPP
+#define TRA_NETCODE_ENGINE_NETWORK_SYSTEM_REGISTRAR_HPP
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	class NetworkEcs;
 	namespace NetworkSystemRegistrar

@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <cstring>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	std::vector<uint8_t> MessageSerializer::serializePayload(const Message& _message)
 	{

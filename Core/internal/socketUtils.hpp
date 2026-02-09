@@ -1,5 +1,5 @@
-#ifndef TRA_CORE_SOCKET_UTILS_HPP
-#define TRA_CORE_SOCKET_UTILS_HPP
+#ifndef TRA_NETCODE_CORE_SOCKET_UTILS_HPP
+#define TRA_NETCODE_CORE_SOCKET_UTILS_HPP
 
 #include "TRA/errorCode.hpp"
 
@@ -8,7 +8,7 @@
 
 #include "TRA/netcode/core/networkInclude.hpp"
 
-namespace tra::core
+namespace tra::netcode::core
 {
     namespace SocketUtils
     {

@@ -1,11 +1,11 @@
-#ifndef TRA_ENGINE_MESSAGE_HEADER_HPP
-#define TRA_ENGINE_MESSAGE_HEADER_HPP
+#ifndef TRA_NETCODE_ENGINE_MESSAGE_HEADER_HPP
+#define TRA_NETCODE_ENGINE_MESSAGE_HEADER_HPP
 
 #include <variant>
 #include <string>
 #include <unordered_map>
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
     struct MessageHeader
     {

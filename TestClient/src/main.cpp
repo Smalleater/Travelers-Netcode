@@ -1,12 +1,12 @@
 #include <thread>
 #include <chrono>
 
-#include "TRA/client/client.hpp"
-#include "TRA/engine/message.hpp"
+#include "TRA/netcode/client/client.hpp"
+#include "TRA/Netcode/engine/message.hpp"
 
 using namespace tra;
-using namespace tra::engine;
-using namespace tra::client;
+using namespace tra::netcode::engine;
+using namespace tra::netcode::client;
 
 DECLARE_MESSAGE_BEGIN(HelloWorld)
 FIELD(std::string, string)

@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
 
-namespace tra::core
+namespace tra::netcode::core
 {
 	WSAInitializer* WSAInitializer::m_singleton = nullptr;
 

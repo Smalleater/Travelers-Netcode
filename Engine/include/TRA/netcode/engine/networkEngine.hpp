@@ -1,5 +1,5 @@
-#ifndef TRA_ENGINE_NETWORK_ENGINE_HPP
-#define TRA_ENGINE_NETWORK_ENGINE_HPP
+#ifndef TRA_NETCODE_ENGINE_NETWORK_ENGINE_HPP
+#define TRA_NETCODE_ENGINE_NETWORK_ENGINE_HPP
 
 #include "TRA/export.hpp"
 #include "TRA/errorCode.hpp"
@@ -11,7 +11,7 @@
 
 #include "TRA/netcode/engine/networkEcs.hpp"
 
-namespace tra::engine
+namespace tra::netcode::engine
 {
 	struct Message;
 
