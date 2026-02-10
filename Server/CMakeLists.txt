@@ -51,4 +51,4 @@ add_custom_command(TARGET tra_server POST_BUILD
 file(GLOB HEADER_FILES "${COMMON_INCLUDE_DIR}/TRA/*")
 add_custom_command(TARGET tra_server POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${HEADER_FILES} ${COMMON_EXPORT_INCLUDE_DIR}/)
+    ${HEADER_FILES} ${COMMON_EXPORT_COMMON_INCLUDE_DIR}/)
