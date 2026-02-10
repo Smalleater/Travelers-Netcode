@@ -53,6 +53,11 @@ add_custom_command(TARGET tra_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${HEADER_FILES} ${COMMON_EXPORT_COMMON_INCLUDE_DIR}/)
 
+file(GLOB HEADER_FILES "${EXT_LIBS_DIR}/header/TRA/ecs/*")
+add_custom_command(TARGET tra_engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${HEADER_FILES} ${CMAKE_SOURCE_DIR}/ExportDLL/include/TRA/ecs/)
+
 if(WIN32)
     add_library(tra_ecs SHARED IMPORTED)
     set_target_properties(tra_ecs PROPERTIES
