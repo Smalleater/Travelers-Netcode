@@ -1,7 +1,7 @@
 #ifndef TRA_ECS_COMPONENT_LIBRARY_HPP
 #define TRA_ECS_COMPONENT_LIBRARY_HPP
 
-#include "TRA/export.hpp"
+#include "TRA/ecs/export.hpp"
 
 #include <vector>
 #include <unordered_map>
@@ -58,12 +58,12 @@ namespace tra::ecs
 			return m_components.at(m_componentLookUp.at(typeid(T)));
 		}
 
-		TRA_API static const ComponentInfo& getComponent(size_t _id);
-		TRA_API static const size_t getCount();
+		TRA_ECS_API static const ComponentInfo& getComponent(size_t _id);
+		TRA_ECS_API static const size_t getCount();
 
 	private:
-		TRA_API static std::vector<ComponentInfo> m_components;
-		TRA_API static std::unordered_map<std::type_index, size_t> m_componentLookUp;
+		TRA_ECS_API static std::vector<ComponentInfo> m_components;
+		TRA_ECS_API static std::unordered_map<std::type_index, size_t> m_componentLookUp;
 	};
 }
 

@@ -1,7 +1,7 @@
 #ifndef TRA_ECS_ARCHETYPE_KEY_HPP
 #define TRA_ECS_ARCHETYPE_KEY_HPP
 
-#include "TRA/export.hpp"
+#include "TRA/ecs/export.hpp"
 
 #include <array>
 #include <cstddef>
@@ -21,13 +21,13 @@ namespace tra::ecs
 		SignatureKey(const SignatureKey&) = default;
 		~SignatureKey() = default;
 
-		TRA_API bool operator==(const SignatureKey& _other) const;
+		TRA_ECS_API bool operator==(const SignatureKey& _other) const;
 		bool operator!=(const SignatureKey& _other) const;
 
-		TRA_API static bool matches(const SignatureKey& _signatureKey, const SignatureKey& _required, const SignatureKey& _excluded);
+		TRA_ECS_API static bool matches(const SignatureKey& _signatureKey, const SignatureKey& _required, const SignatureKey& _excluded);
 
-		TRA_API void addKey(const size_t _key);
-		TRA_API void removeKey(const size_t _key);
+		TRA_ECS_API void addKey(const size_t _key);
+		TRA_ECS_API void removeKey(const size_t _key);
 
 		bool hasKey(const size_t _key) const;
 	};

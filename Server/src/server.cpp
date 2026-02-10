@@ -2,7 +2,7 @@
 
 #include "TRA/debugUtils.hpp"
 
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 #include "TRA/netcode/engine/message.hpp"
 
 namespace tra::netcode::server
@@ -76,24 +76,16 @@ namespace tra::netcode::server
 			return ErrorCode::NetworkEngineNotInitialized;
 		}
 
-		ErrorCode ecTcp = m_networkEngine->stopTcpListen();
+		m_networkEngine->stopTcpListen();
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
-		if (ecTcp != ErrorCode::Success /*|| ecUdp != ErrorCode::Success*/)
-		{
-			TRA_ERROR_LOG("Server: Failed to stop server sockets properly. TCP ErrorCode: %d", static_cast<int>(ecTcp));
-			return ErrorCode::DisconnectWithErrors;
-		}
-		else
-		{
-			TRA_INFO_LOG("Server: Stopped successfully.");
-			return ErrorCode::Success;
-		}
+		TRA_INFO_LOG("Server: Stopped successfully.");
+		return ErrorCode::Success;
 	}
 
 	bool Server::isRunning() const
 	{
-		return m_networkEngine->entityHasComponent<engine::ListeningComponentTag>(m_networkEngine->getSelfEntityId());
+		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ListeningTag>(m_networkEngine->getSelfEntity());
 	}
 
 	void Server::beginUpdate()
@@ -118,7 +110,12 @@ namespace tra::netcode::server
 		m_networkEngine->endUpdate();
 	}
 
-	ErrorCode Server::sendTcpMessage(engine::EntityId _entityId, std::shared_ptr<engine::Message> _message)
+	ecs::World* Server::getEcsWorld()
+	{
+		return m_networkEngine->getEcsWorld();
+	}
+
+	ErrorCode Server::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message)
 	{
 		if (!isRunning())
 		{
@@ -126,21 +123,16 @@ namespace tra::netcode::server
 			return ErrorCode::ServerNotRunning;
 		}
 
-		return m_networkEngine->sendTcpMessage(_entityId, _message);
+		return m_networkEngine->sendTcpMessage(_entity, _message);
 	}
 
-	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(EntityId _entityId, const std::string& _messageType)
+	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(ecs::Entity _entity, const std::string& _messageType)
 	{
 		if (!isRunning())
 		{
 			return {};
 		}
 
-		return m_networkEngine->getTcpMessages(_entityId, _messageType);
-	}
-
-	EntityId Server::getSelfEntityId()
-	{
-		return m_networkEngine->getSelfEntityId();
+		return m_networkEngine->getTcpMessages(_entity, _messageType);
 	}
 }

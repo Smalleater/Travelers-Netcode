@@ -2,6 +2,7 @@
 #define TRA_NETCODE_CLIENT_CLIENT_HPP
 
 #include "TRA/export.hpp"
+
 #include "TRA/errorCode.hpp"
 
 #include <string>
@@ -29,26 +30,10 @@ namespace tra::netcode::client
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();
 
+		TRA_API ecs::World* getEcsWorld();
+
 		TRA_API ErrorCode sendTcpMessage(std::shared_ptr<engine::Message> _message);
 		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(const std::string& _messageType);
-
-		template<typename ComponentType>
-		bool entityHasComponent(EntityId _entityId)
-		{
-			return m_networkEngine->entityHasComponent<ComponentType>(_entityId);
-		}
-
-		template<typename ...ComponentType>
-		std::vector<EntityId> queryEntityIds()
-		{
-			return m_networkEngine->queryEntityIds<ComponentType...>();
-		}
-
-		template<typename ...ComponentType>
-		std::vector<std::tuple<EntityId, std::shared_ptr<ComponentType>...>> queryEntity()
-		{
-			return m_networkEngine->queryEntity<ComponentType...>();
-		}
 
 	private:
 		static Client* m_singleton;

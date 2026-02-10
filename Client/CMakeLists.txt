@@ -6,6 +6,9 @@ project(TRA_Client VERSION 0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+link_directories(${COMMON_EXPORT_LIB_DIR})
+link_directories(${EXT_LIBS_DIR}/lib)
+
 # Collect all source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -18,16 +21,11 @@ target_include_directories(tra_client
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}/internal
+        ${EXT_LIBS_DIR}/header
 )
 
 # Define export macro for DLL/SO symbol visibility
 target_compile_definitions(tra_client PRIVATE TRA_EXPORTS)
-
-if(WIN32)
-    target_link_libraries(tra_client PUBLIC ${COMMON_EXPORT_LIB_DIR}/tra_engine.lib)
-else()
-    target_link_libraries(tra_client PUBLIC ${COMMON_EXPORT_LIB_DIR}/libtra_engine.so)
-endif()
 
 target_link_libraries(tra_client PUBLIC tra_engine)
 

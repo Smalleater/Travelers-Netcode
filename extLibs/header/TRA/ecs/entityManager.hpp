@@ -1,7 +1,7 @@
 #ifndef TRA_ECS_ENTITY_MANAGER_HPP
 #define TRA_ECS_ENTITY_MANAGER_HPP
 
-#include "TRA/export.hpp"
+#include "TRA/ecs/export.hpp"
 
 #include <vector>
 
@@ -14,15 +14,15 @@ namespace tra::ecs
 	class EntityManager
 	{
 	public:
-		TRA_API EntityManager();
+		TRA_ECS_API EntityManager();
 		~EntityManager() = default;
 
 		Entity createEntity();
 		void deleteEntity(Entity _entity);
 
-		TRA_API Entity& getEntityById(const EntityId _id);
-		TRA_API EntityData& getEntityData(const Entity _entity);
-		TRA_API EntitySignature& getSignature(const Entity _entity);
+		TRA_ECS_API Entity& getEntityById(const EntityId _id);
+		TRA_ECS_API EntityData& getEntityData(const Entity _entity);
+		TRA_ECS_API EntitySignature& getSignature(const Entity _entity);
 
 	private:
 		EntityId m_nextFreeId;

@@ -2,17 +2,13 @@
 #define TRA_NETCODE_SERVER_SERVER_HPP
 
 #include "TRA/export.hpp"
+
 #include "TRA/errorCode.hpp"
 
 #include <cstdint>
 #include <unordered_map>
 
 #include "TRA/netcode/engine/networkEngine.hpp"
-
-namespace tra::engine
-{
-	struct Message;
-}
 
 namespace tra::netcode::server
 {
@@ -34,28 +30,10 @@ namespace tra::netcode::server
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();
 
-		TRA_API ErrorCode sendTcpMessage(engine::EntityId _entityId, std::shared_ptr<engine::Message> _message);
-		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(EntityId _entityId, const std::string& _messageType);
+		TRA_API ecs::World* getEcsWorld();
 
-		TRA_API EntityId getSelfEntityId();
-
-		template<typename ComponentType>
-		bool entityHasComponent(EntityId _entityId)
-		{
-			return m_networkEngine->entityHasComponent<ComponentType>(_entityId);
-		}
-
-		template<typename ...ComponentType>
-		std::vector<EntityId> queryEntityIds()
-		{
-			return m_networkEngine->queryEntityIds<ComponentType...>();
-		}
-
-		template<typename ...ComponentType>
-		std::vector<std::tuple<EntityId, std::shared_ptr<ComponentType>...>> queryEntity()
-		{
-			return m_networkEngine->queryEntity<ComponentType...>();
-		}
+		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message);
+		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(ecs::Entity _entity, const std::string& _messageType);
 
 	private:
 		static Server* m_singleton;
@@ -65,8 +43,6 @@ namespace tra::netcode::server
 		Server();
 		~Server();
 	};
-
-	
 }
 
 #endif

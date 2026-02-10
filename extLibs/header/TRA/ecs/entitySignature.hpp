@@ -1,7 +1,7 @@
 #ifndef TRA_ECS_ENTITY_SIGNATURE_HPP
 #define TRA_ECS_ENTITY_SIGNATURE_HPP
 
-#include "TRA/export.hpp"
+#include "TRA/ecs/export.hpp"
 
 #include <array>
 #include <cstdint>
@@ -24,15 +24,15 @@ namespace tra::ecs
 		bool operator==(const EntitySignature& _other) const;
 		bool operator!=(const EntitySignature& _other) const;
 
-		TRA_API void addComponent(const size_t _componentId);
-		TRA_API void removeComponent(const size_t _componentId);
+		TRA_ECS_API void addComponent(const size_t _componentId);
+		TRA_ECS_API void removeComponent(const size_t _componentId);
 
-		TRA_API bool hasComponent(const size_t _componentId) const;
+		TRA_ECS_API bool hasComponent(const size_t _componentId) const;
 
-		TRA_API void addTag(const size_t _tagId);
-		TRA_API void removeTag(const size_t _tagId);
+		TRA_ECS_API void addTag(const size_t _tagId);
+		TRA_ECS_API void removeTag(const size_t _tagId);
 
-		TRA_API bool hasTag(const size_t _tagId) const;
+		TRA_ECS_API bool hasTag(const size_t _tagId) const;
 	};
 
 	constexpr EntitySignature NULL_ENTITY_SIGNATURE = EntitySignature{};

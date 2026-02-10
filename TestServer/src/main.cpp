@@ -5,10 +5,8 @@
 
 #include "TRA/debugUtils.hpp"
 
-#include "TRA/netcode/engine/networkRootComponentTag.hpp"
 #include "TRA/netcode/engine/message.hpp"
-#include "TRA/netcode/engine/newConnectionComponent.hpp"
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
 
 using namespace tra;
 using namespace tra::netcode::engine;
@@ -24,36 +22,33 @@ int main() {
 	ec = Server::Get()->Start(2025);
 	if (ec != ErrorCode::Success) return -1;
 
-	EntityId selfEntityId = Server::Get()->getSelfEntityId();
+	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
+	message->string = "Hello World from server!";
 
 	while (Server::Get()->isRunning())
 	{
 		Server::Get()->beginUpdate();
 
-		std::vector<EntityId> queryIds = Server::Get()->queryEntityIds<NetworkRootComponentTag, ConnectedComponentTag>();
-		for (size_t i = 0; i < queryIds.size(); i++)
+		for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<tags::ConnectedTag>{},
+			ecs::WithoutTag<tags::SelfTag>{}))
 		{
-			if (queryIds[i] == selfEntityId) continue;
-
-			auto getMessageResult = Server::Get()->getTcpMessages(queryIds[i], "HelloWorld");
+			auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
 			for (auto message : getMessageResult)
 			{
 				message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-				std::cout << "Received from client " << queryIds[i] << ": " << helloMessage->string << std::endl;
+				std::cout << "Received from client " << entity.id() << ": " << helloMessage->string << std::endl;
 			}
 
-			std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-			message->string = "Hello World from server!";
-			Server::Get()->sendTcpMessage(queryIds[i], message);
+			Server::Get()->sendTcpMessage(entity, message);
 		}
 
 		Server::Get()->endUpdate();
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
-
-	/*ec = Server::Get()->Stop();
-	if (ec != ErrorCode::Success) return -1;*/
 
 	return 0;
 }

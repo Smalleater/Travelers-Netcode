@@ -1,11 +1,11 @@
 #ifndef TRA_ECS_WORLD_HPP
 #define TRA_ECS_WORLD_HPP
 
+#include "TRA/ecs/export.hpp"
+
 #include <unordered_map>
 #include <memory>
 #include <functional>
-
-#include "TRA/debugUtils.hpp"
 
 #include "TRA/ecs/entityManager.hpp"
 #include "TRA/ecs/archetype.hpp"
@@ -30,16 +30,16 @@ namespace tra::ecs
 	class World
 	{
 	public:
-		TRA_API World();
+		TRA_ECS_API World();
 		~World() = default;
 
-		TRA_API Entity createEntity();
-		TRA_API void destroyEntity(const Entity _entity);
+		TRA_ECS_API Entity createEntity();
+		TRA_ECS_API void destroyEntity(const Entity _entity);
 
-		TRA_API void addBeginSystem(std::unique_ptr<ISystem> _ptr);
-		TRA_API void addEndSystem(std::unique_ptr<ISystem> _ptr);
-		TRA_API void updateBeginSystems();
-		TRA_API void updateEndSystems();
+		TRA_ECS_API void addBeginSystem(std::unique_ptr<ISystem> _ptr);
+		TRA_ECS_API void addEndSystem(std::unique_ptr<ISystem> _ptr);
+		TRA_ECS_API void updateBeginSystems();
+		TRA_ECS_API void updateEndSystems();
 
 		template<typename T>
 		bool hasComponent(const Entity _entity)
@@ -181,14 +181,14 @@ namespace tra::ecs
 		std::vector<std::unique_ptr<ISystem>> m_beginSystems;
 		std::vector<std::unique_ptr<ISystem>> m_endSystems;
 
-		TRA_API bool hasComponentImpl(const Entity _entity, const size_t _componentId);
-		TRA_API void addComponentImpl(const Entity _entity, const size_t _componentId, std::function<void(uint8_t*)> _constructor);
-		TRA_API void removeComponentImpl(const Entity _entity, const size_t _componentId);
-		TRA_API void setComponentImpl(const Entity _entity, const size_t _componentId, std::function<void(uint8_t*)> _constructor);
+		TRA_ECS_API bool hasComponentImpl(const Entity _entity, const size_t _componentId);
+		TRA_ECS_API void addComponentImpl(const Entity _entity, const size_t _componentId, std::function<void(uint8_t*)> _constructor);
+		TRA_ECS_API void removeComponentImpl(const Entity _entity, const size_t _componentId);
+		TRA_ECS_API void setComponentImpl(const Entity _entity, const size_t _componentId, std::function<void(uint8_t*)> _constructor);
 
-		TRA_API bool hasTagImpl(const Entity _entity, const size_t _tagId);
-		TRA_API void addTagImpl(const Entity _entity, const size_t _tagId);
-		TRA_API void removeTagImpl(const Entity _entity, const size_t _tagId);
+		TRA_ECS_API bool hasTagImpl(const Entity _entity, const size_t _tagId);
+		TRA_ECS_API void addTagImpl(const Entity _entity, const size_t _tagId);
+		TRA_ECS_API void removeTagImpl(const Entity _entity, const size_t _tagId);
 
 		Archetype* getOrCreateArchetype(const SignatureKey _key);
 		void copyComponentsToArchetype(Archetype* _srcArch, Archetype* _dstArch,

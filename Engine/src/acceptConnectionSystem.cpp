@@ -70,14 +70,14 @@ namespace tra::netcode::engine::internal
 		{
 			ecs::Entity entity = _world->createEntity();
 
-			_world->addTag<tags::NetworkRootTag>(entity);
 			_world->addTag<tags::NewConnectionTag>(entity);
 			_world->addTag<tags::ConnectedTag>(entity);
 
-			_world->addComponent(entity, components::TcpConnectSocketComponent{ std::move(*socket) });
+			_world->addComponent(entity, components::TcpConnectSocketComponent{ socket });
 			_world->addComponent(entity, components::ReceiveTcpMessageComponent{});
 			_world->addComponent(entity, components::SendTcpMessageComponent{});
 
 			TRA_INFO_LOG("NetworkEngine: Accepted new TCP connection. Entity ID: %I32u", entity.id());
 		}
+	}
 }

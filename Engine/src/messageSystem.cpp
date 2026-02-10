@@ -112,7 +112,7 @@ namespace tra::netcode::engine::internal
 				receiveMessagePtr->m_receivedBuffer.erase(receiveMessagePtr->m_receivedBuffer.begin(),
 					receiveMessagePtr->m_receivedBuffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(consumedBytes));
 
-				std::unique_ptr<Message> newMessage = MessageSerializer::deserializePayload(payload);
+				std::shared_ptr<Message> newMessage = MessageSerializer::deserializePayload(payload);
 				if (!newMessage)
 				{
 					TRA_ERROR_LOG("ReceiveTcpMessageSystem::update: Failed to deserialize message for entity %llu",

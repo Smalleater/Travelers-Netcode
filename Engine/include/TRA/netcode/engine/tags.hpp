@@ -5,6 +5,7 @@
 
 namespace tra::netcode::engine::tags
 {
+	TRA_ECS_REGISTER_TAG(ListeningTag)
 	TRA_ECS_REGISTER_TAG(NewConnectionTag)
 	TRA_ECS_REGISTER_TAG(ConnectedTag)
 	TRA_ECS_REGISTER_TAG(DisconnectedTag)

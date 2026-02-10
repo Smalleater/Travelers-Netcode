@@ -2,7 +2,8 @@
 
 #include "TRA/debugUtils.hpp"
 
-#include "TRA/netcode/engine/connectionStatusComponent.hpp"
+#include "TRA/netcode/engine/tags.hpp"
+#include "TRA/netcode/engine/message.hpp"
 
 namespace tra::netcode::client
 {
@@ -76,24 +77,16 @@ namespace tra::netcode::client
 			return ErrorCode::NetworkEngineNotInitialized;
 		}
 
-		ErrorCode ecTcp = m_networkEngine->stopTcpConnect();
+		m_networkEngine->stopTcpConnect();
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
-		if (ecTcp != ErrorCode::Success /*|| ecUdp != ErrorCode::Success*/)
-		{
-			TRA_ERROR_LOG("Client: Disconnection encountered errors. TCP ErrorCode: %d", static_cast<int>(ecTcp));
-			return ErrorCode::DisconnectWithErrors;
-		}
-		else
-		{
-			TRA_INFO_LOG("Client: Disconnected successfully.");
-			return ErrorCode::Success;
-		}
+		TRA_INFO_LOG("Client: Disconnected successfully.");
+		return ErrorCode::Success;
 	}
 
 	bool Client::IsConnected() const
 	{
-		return m_networkEngine->entityHasComponent<engine::ConnectedComponentTag>(m_networkEngine->getSelfEntityId());
+		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ConnectedTag>(m_networkEngine->getSelfEntity());
 	}
 
 	void Client::beginUpdate()
@@ -116,6 +109,11 @@ namespace tra::netcode::client
 		m_networkEngine->endUpdate();
 	}
 
+	ecs::World* Client::getEcsWorld()
+	{
+		return m_networkEngine->getEcsWorld();
+	}
+
 	ErrorCode Client::sendTcpMessage(std::shared_ptr<engine::Message> _message)
 	{
 		if (!IsConnected())
@@ -123,7 +121,7 @@ namespace tra::netcode::client
 			return ErrorCode::ClientNotConnected;
 		}
 
-		return m_networkEngine->sendTcpMessage(m_networkEngine->getSelfEntityId(), _message);
+		return m_networkEngine->sendTcpMessage(m_networkEngine->getSelfEntity(), _message);
 	}
 
 	std::vector<std::shared_ptr<engine::Message>> Client::getTcpMessages(const std::string& _messageType)
@@ -133,6 +131,6 @@ namespace tra::netcode::client
 			return {};
 		}
 
-		return m_networkEngine->getTcpMessages(m_networkEngine->getSelfEntityId(), _messageType);
+		return m_networkEngine->getTcpMessages(m_networkEngine->getSelfEntity(), _messageType);
 	}
 }

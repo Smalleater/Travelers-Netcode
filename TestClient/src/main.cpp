@@ -39,8 +39,5 @@ int main() {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
-	/*ec = Client::Get()->Disconnect();
-	if (ec != ErrorCode::Success) return -1;*/
-
 	return 0;
 }

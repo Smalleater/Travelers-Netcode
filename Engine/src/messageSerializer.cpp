@@ -14,7 +14,7 @@ namespace tra::netcode::engine
 		return MessageFactory::serialize(_message);
 	}
 
-	std::unique_ptr<Message> MessageSerializer::deserializePayload(const std::vector<uint8_t>& _payload)
+	std::shared_ptr<Message> MessageSerializer::deserializePayload(const std::vector<uint8_t>& _payload)
 	{
 		TRA_ASSERT_REF_PTR_OR_COPIABLE(_payload);
 

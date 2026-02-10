@@ -1,6 +1,8 @@
 #ifndef TRA_ECS_ARCHETYPE_HPP
 #define TRA_ECS_ARCHETYPE_HPP
 
+#include "TRA/ecs/export.hpp"
+
 #include <optional>
 #include <utility>
 
@@ -18,15 +20,15 @@ namespace tra::ecs
 	class Archetype
 	{
 	public:
-		TRA_API Archetype(const SignatureKey& _signature);
+		TRA_ECS_API Archetype(const SignatureKey& _signature);
 		~Archetype() = default;
 
-		TRA_API SignatureKey getSignatureKey();
+		TRA_ECS_API SignatureKey getSignatureKey();
 
-		TRA_API void addEntity(const Entity _entity, EntityData& _entityData);
-		TRA_API std::optional<std::pair<EntityId, size_t>> removeEntity(EntityData& _entityData);
+		TRA_ECS_API void addEntity(const Entity _entity, EntityData& _entityData);
+		TRA_ECS_API std::optional<std::pair<EntityId, size_t>> removeEntity(EntityData& _entityData);
 		
-		TRA_API std::vector<EntityId> getEntitiesId();
+		TRA_ECS_API std::vector<EntityId> getEntitiesId();
 
 		template<typename T>
 		T* getComponentPtr(const EntityData& _entityData)
@@ -35,7 +37,7 @@ namespace tra::ecs
 			return reinterpret_cast<T*>(getComponentPtr(_entityData, componentId));
 		}
 
-		TRA_API uint8_t* getComponentPtr(const EntityData& _entityData, const size_t _componentid);
+		TRA_ECS_API uint8_t* getComponentPtr(const EntityData& _entityData, const size_t _componentid);
 
 	private:
 		const SignatureKey m_signatureKey;

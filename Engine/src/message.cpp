@@ -30,7 +30,7 @@ namespace tra::netcode::engine
             return hash;
         }
 
-        void registerMessageType(const uint32_t _id, std::unique_ptr<Message>(*_creator)(const std::vector<uint8_t>&))
+        void registerMessageType(const uint32_t _id, std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&))
         {
             TRA_ASSERT_REF_PTR_OR_COPIABLE(_creator);
 

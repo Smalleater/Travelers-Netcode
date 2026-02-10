@@ -7,18 +7,21 @@
 
 #include "TRA/ecs/component.hpp"
 
-struct tra::netcode::engine::Message;
+namespace tra::netcode::engine
+{
+	struct Message;
+}
 
 namespace tra::netcode::engine::internal::components
 {
 	TRA_ECS_REGISTER_COMPONENT(SendTcpMessageComponent,
-		std::vector<std::unique_ptr<Message>> m_messagesToSend;
+		std::vector<std::shared_ptr<Message>> m_messagesToSend;
 		std::vector<std::vector<uint8_t>> m_serializedToSend;
 		int m_lastMessageByteSent = 0;
 	)
 
 	TRA_ECS_REGISTER_COMPONENT(ReceiveTcpMessageComponent,
-		std::unordered_map<std::string, std::vector<std::unique_ptr<Message>>> m_receivedMessages;
+		std::unordered_map<std::string, std::vector<std::shared_ptr<Message>>> m_receivedMessages;
 		std::vector<uint8_t> m_receivedBuffer;
 	)
 }

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 link_directories(${COMMON_EXPORT_LIB_DIR})
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
+link_directories(${EXT_LIBS_DIR}/lib)
 
 # Collect all source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -20,13 +20,14 @@ target_include_directories(tra_engine
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${EXT_LIBS_DIR}/header
 )
 
 # Define export macro for DLL/SO symbol visibility
 target_compile_definitions(tra_engine PRIVATE TRA_EXPORTS)
 
 target_link_libraries(tra_engine PUBLIC tra_core)
-target_link_libraries(tra_engine PRIVATE tra_ecs)
+target_link_libraries(tra_engine PUBLIC tra_ecs)
 
 target_compile_definitions(tra_engine
     PUBLIC
@@ -55,9 +56,9 @@ add_custom_command(TARGET tra_engine POST_BUILD
 if(WIN32)
     add_library(tra_ecs SHARED IMPORTED)
     set_target_properties(tra_ecs PROPERTIES
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/dll/debug/tra_ecs.dll
-        IMPORTED_LOCATION_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/dll/release/tra_ecs.dll
-        IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/tra_ecs.lib
+        IMPORTED_LOCATION_DEBUG ${EXT_LIBS_DIR}/dll/debug/tra_ecs.dll
+        IMPORTED_LOCATION_RELEASE ${EXT_LIBS_DIR}/dll/release/tra_ecs.dll
+        IMPORTED_IMPLIB ${EXT_LIBS_DIR}/lib/tra_ecs.lib
     )
 
     add_custom_command(TARGET tra_engine POST_BUILD
@@ -74,8 +75,8 @@ if(WIN32)
 else()
     add_library(tra_ecs SHARED IMPORTED)
     set_target_properties(tra_ecs PROPERTIES
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/so/debug/libtra_ecs.so
-        IMPORTED_LOCATION_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/so/release/libtra_ecs.so
+        IMPORTED_LOCATION_DEBUG ${EXT_LIBS_DIR}/so/debug/libtra_ecs.so
+        IMPORTED_LOCATION_RELEASE ${EXT_LIBS_DIR}/so/release/libtra_ecs.so
     )
 
     add_custom_command(TARGET tra_engine POST_BUILD

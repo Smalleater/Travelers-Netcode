@@ -6,6 +6,8 @@ project(TRA_TestClient VERSION 0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+link_directories(${EXT_LIBS_DIR}/lib)
+
 # Collect all source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -16,6 +18,7 @@ add_executable(tra_testClient ${SOURCES})
 target_include_directories(tra_testClient 
 	PRIVATE 
 		${CMAKE_SOURCE_DIR}/include
+        ${EXT_LIBS_DIR}/header
 )
 
 target_link_libraries(tra_testClient PUBLIC tra_client)

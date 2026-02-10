@@ -1,7 +1,7 @@
 #ifndef TRA_ECS_TAG_LIBRARY_HPP
 #define TRA_ECS_TAG_LIBRARY_HPP
 
-#include "TRA/export.hpp"
+#include "TRA/ecs/export.hpp"
 
 #include <unordered_map>
 #include <typeindex>
@@ -34,7 +34,7 @@ namespace tra::ecs
 		}
 
 	private:
-		TRA_API static std::unordered_map<std::type_index, size_t> m_tagtLookUp;
+		TRA_ECS_API static std::unordered_map<std::type_index, size_t> m_tagtLookUp;
 	};
 }
 

@@ -93,6 +93,8 @@ namespace tra::netcode::engine
 
 		m_ecsWorld->addComponent(m_selfEntity, std::move(socketComponent));
 
+		m_ecsWorld->addTag<tags::ListeningTag>(m_selfEntity);
+
 		TRA_DEBUG_LOG("NetworkEngine: TCP listen socket started on port %d.", _port);
 		return ErrorCode::Success;
 	}
@@ -224,19 +226,27 @@ namespace tra::netcode::engine
 		return ErrorCode::Success;
 	}*/
 
-	ErrorCode NetworkEngine::stopTcpListen()
+	void NetworkEngine::stopTcpListen()
 	{
-		if (!m_ecsWorld->hasComponent<internal::components::TcpListenSocketComponent>(m_selfEntity))
+		if (!m_ecsWorld->hasTag<tags::ListeningTag>(m_selfEntity) && !m_ecsWorld->hasComponent<internal::components::TcpListenSocketComponent>(m_selfEntity))
 		{
-			TRA_DEBUG_LOG("NetworkEngine: Stop TCP listen called but TCP listen socket is not open.");
-			return ErrorCode::Success;
+			TRA_DEBUG_LOG("NetworkEngine: Stop TCP listen called but TCP listen socket is not started.");
+			return;
 		}
 
-		auto socketComponentPtr = m_ecsWorld->getComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
-		socketComponentPtr->m_tcpSocket->shutdownSocket();
-		socketComponentPtr->m_tcpSocket->closeSocket();
+		if (m_ecsWorld->hasTag<tags::ListeningTag>(m_selfEntity))
+		{
+			m_ecsWorld->removeTag<tags::ListeningTag>(m_selfEntity);
+		}
 
-		m_ecsWorld->removeComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
+		if (m_ecsWorld->hasComponent<internal::components::TcpListenSocketComponent>(m_selfEntity))
+		{
+			auto socketComponentPtr = m_ecsWorld->getComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
+			socketComponentPtr->m_tcpSocket->shutdownSocket();
+			socketComponentPtr->m_tcpSocket->closeSocket();
+
+			m_ecsWorld->removeComponent<internal::components::TcpListenSocketComponent>(m_selfEntity);
+		}
 
 #ifdef _WIN32
 		core::WSAInitializer::Get()->CleanUp();
@@ -244,50 +254,34 @@ namespace tra::netcode::engine
 #endif
 
 		TRA_DEBUG_LOG("NetworkEngine: TCP listen socket stopped.");
-		return ErrorCode::Success;
+		return;
 	}
 
-	ErrorCode NetworkEngine::stopTcpConnect()
+	void NetworkEngine::stopTcpConnect()
 	{
-		if (!m_networkEcs->hasComponent<TcpConnectSocketComponent>(m_selfEntityId))
+		if (!m_ecsWorld->hasTag<tags::ConnectedTag>(m_selfEntity) && !m_ecsWorld->hasComponent<internal::components::TcpConnectSocketComponent>(m_selfEntity))
 		{
-			TRA_DEBUG_LOG("NetworkEngine: Stop TCP connect called but TCP connect socket is not open.");
-			return ErrorCode::Success;
+			TRA_DEBUG_LOG("NetworkEngine: Stop TCP connect called but TCP connect socket is not started.");
 		}
 
-		if (m_networkEcs->hasComponent<ConnectedComponentTag>(m_selfEntityId))
+		if (m_ecsWorld->hasTag<tags::ConnectedTag>(m_selfEntity))
 		{
-			m_networkEcs->removeComponentFromEntity<ConnectedComponentTag>(m_selfEntityId);
-		}
-		else
-		{
-			TRA_DEBUG_LOG("NetworkEngine: Stop TCP listen called but ConnectedComponentTag is not present on self entity.");
+			m_ecsWorld->removeTag<tags::ConnectedTag>(m_selfEntity);
 		}
 
-		ErrorCode removeResult;
-
-		removeResult = m_networkEcs->removeComponentFromEntity<TcpConnectSocketComponent>(m_selfEntityId);
-		if (removeResult != ErrorCode::Success)
+		if (m_ecsWorld->hasComponent<internal::components::TcpConnectSocketComponent>(m_selfEntity))
 		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to remove TcpConnectSocketComponent from self entity. ErrorCode: %d", static_cast<int>(removeResult));
+			m_ecsWorld->removeComponent<internal::components::TcpConnectSocketComponent>(m_selfEntity);
 		}
 
-		removeResult = m_networkEcs->removeComponentFromEntity<NetworkRootComponentTag>(m_selfEntityId);
-		if (removeResult != ErrorCode::Success)
+		if (m_ecsWorld->hasComponent<internal::components::SendTcpMessageComponent>(m_selfEntity))
 		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to remove NetworkRootComponentTag from self entity. ErrorCode: %d", static_cast<int>(removeResult));
+			m_ecsWorld->removeComponent<internal::components::SendTcpMessageComponent>(m_selfEntity);
 		}
 
-		removeResult = m_networkEcs->removeComponentFromEntity<SendTcpMessageComponent>(m_selfEntityId);
-		if (removeResult != ErrorCode::Success)
+		if (m_ecsWorld->hasComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity))
 		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to remove SendTcpMessageComponent from self entity. ErrorCode: %d", static_cast<int>(removeResult));
-		}
-
-		removeResult = m_networkEcs->removeComponentFromEntity<ReceiveTcpMessageComponent>(m_selfEntityId);
-		if (removeResult != ErrorCode::Success)
-		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to remove ReceiveTcpMessageComponent from self entity. ErrorCode: %d", static_cast<int>(removeResult));
+			m_ecsWorld->removeComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity);
 		}
 
 #ifdef _WIN32
@@ -296,10 +290,10 @@ namespace tra::netcode::engine
 #endif
 
 		TRA_DEBUG_LOG("NetworkEngine: TCP connect socket stopped.");
-		return ErrorCode::Success;
+		return;
 	}
 
-	ErrorCode NetworkEngine::stopUdp()
+	/*ErrorCode NetworkEngine::stopUdp()
 	{
 		if (!m_udpSocket)
 		{
@@ -318,75 +312,58 @@ namespace tra::netcode::engine
 
 		TRA_DEBUG_LOG("NetworkEngine: UDP socket stopped.");
 		return ErrorCode::Success;
-	}
+	}*/
 
 	void NetworkEngine::beginUpdate()
 	{
-		m_ecsWorld ->beginUpdate();
+		m_ecsWorld->updateBeginSystems();
 	}
 
 	void NetworkEngine::endUpdate()
 	{
-		m_networkEcs->endUpdate();
+		m_ecsWorld->updateEndSystems();
 	}
 
 	ErrorCode NetworkEngine::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<Message> _message)
 	{
-		auto getSendTcpMessageComponentResult = m_networkEcs->getComponentOfEntity<SendTcpMessageComponent>(_entityId);
-		if (getSendTcpMessageComponentResult.first != ErrorCode::Success)
+		if (!m_ecsWorld->hasComponent<internal::components::SendTcpMessageComponent>(_entity))
 		{
-			TRA_ERROR_LOG("NetworkEngine: Failed to get SendTcpMessageComponent for entity %I32u. ErrorCode: %d", _entityId, static_cast<int>(getSendTcpMessageComponentResult.first));
-			return getSendTcpMessageComponentResult.first;
+			TRA_ERROR_LOG("NetworkEngine: Failed to get SendTcpMessageComponent for entity %I32u.", _entity.id());
+			return ErrorCode::Failure;
 		}
 
-		std::shared_ptr<SendTcpMessageComponent> sendTcpMessageComponent = getSendTcpMessageComponentResult.second.lock();
-		if (!sendTcpMessageComponent)
-		{
-			TRA_ERROR_LOG("NetworkEngine: SendTcpMessageComponent for entity %I32u is no longer valid.", _entityId);
-			return ErrorCode::InvalidComponent;
-		}
+		auto sendTcpMessageComponentPtr = m_ecsWorld->getComponent<internal::components::SendTcpMessageComponent>(_entity);
+		sendTcpMessageComponentPtr->m_messagesToSend.push_back(_message);
 
-		sendTcpMessageComponent->m_messagesToSend.push_back(_message);
 		return ErrorCode::Success;
 	}
 
-	std::vector<std::shared_ptr<Message>> NetworkEngine::getTcpMessages(EntityId _entityId, const std::string& _messageType)
+	std::vector<std::shared_ptr<Message>> NetworkEngine::getTcpMessages(ecs::Entity _entity, const std::string& _messageType)
 	{
-		if (!m_networkEcs->hasComponent<ReceiveTcpMessageComponent>(_entityId))
+		if (!m_ecsWorld->hasComponent<internal::components::ReceiveTcpMessageComponent>(_entity))
+		{
+			TRA_ERROR_LOG("NetworkEngine: Failed to get ReceiveTcpMessageComponent for entity %I32u.", _entity.id());
+			return {};
+		}
+
+		auto receiveTcpMessageComponentPtr = m_ecsWorld->getComponent<internal::components::ReceiveTcpMessageComponent>(_entity);
+
+		auto it = receiveTcpMessageComponentPtr->m_receivedMessages.find(_messageType);
+		if (it == receiveTcpMessageComponentPtr->m_receivedMessages.end())
 		{
 			return {};
 		}
 
-		auto getComponentResult = m_networkEcs->getComponentOfEntity<ReceiveTcpMessageComponent>(_entityId);
-		if (getComponentResult.first != ErrorCode::Success)
-		{
-			return {};
-		}
-
-		auto receiveTcpMessageComponent = getComponentResult.second.lock();
-		if (!receiveTcpMessageComponent)
-		{
-			TRA_ERROR_LOG("NetworkEngine: ReceiveTcpMessageComponent for entity %I32u is no longer valid.", _entityId);
-			return {};
-		}
-
-		auto it = receiveTcpMessageComponent->m_receivedMessages.find(_messageType);
-		if (it == receiveTcpMessageComponent->m_receivedMessages.end())
-		{
-			return {};
-		}
-
-		std::vector<std::shared_ptr<Message>> messages;
-		for (const auto& messagePtr : it->second)
-		{
-			messages.push_back(messagePtr);
-		}
-
-		return messages;
+		return it->second;
 	}
 
-	EntityId NetworkEngine::getSelfEntityId()
+	ecs::World* NetworkEngine::getEcsWorld()
 	{
-		return m_selfEntityId;
+		return m_ecsWorld.get();
+	}
+
+	ecs::Entity NetworkEngine::getSelfEntity()
+	{
+		return m_selfEntity;
 	}
 }

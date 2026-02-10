@@ -35,7 +35,7 @@ namespace tra::netcode::engine
         TRA_API uint32_t hashTypeName(const char* _str);
 
         TRA_API void registerMessageType(const uint32_t _id,
-			std::unique_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
+			std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
 
         TRA_API void serializeField(std::vector<uint8_t>& _data, int _value);
         TRA_API void serializeField(std::vector<uint8_t>& _data, float _value);
@@ -112,9 +112,9 @@ namespace tra::message { \
             } \
             return data; \
         } \
-        static std::unique_ptr<Message> createFromBytes(const std::vector<uint8_t>& _payload) \
+        static std::shared_ptr<Message> createFromBytes(const std::vector<uint8_t>& _payload) \
         { \
-            std::unique_ptr<CurrentMessageType> message = std::make_unique<CurrentMessageType>(); \
+            std::shared_ptr<CurrentMessageType> message = std::make_shared<CurrentMessageType>(); \
             size_t offset = sizeof(uint32_t); \
             auto& deserializers = getDeserializers(); \
             auto it = deserializers.find(MESSAGE_TYPE_ID); \
