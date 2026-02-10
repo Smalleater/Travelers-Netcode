@@ -20,12 +20,12 @@ namespace tra::ecs
 	{
 		uint32_t m_idAndVersion = 0;
 
-		bool operator==(Entity& _other) const
+		bool operator==(const Entity& _other) const
 		{
 			return m_idAndVersion == _other.m_idAndVersion;
 		}
 
-		bool operator!=(Entity& _other) const
+		bool operator!=(const Entity& _other) const
 		{
 			return !(*this == _other);
 		}
