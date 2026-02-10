@@ -38,7 +38,7 @@ namespace tra::netcode::engine::internal
 			{
 				newSocket = nullptr;
 
-				auto& acceptResult = socketPtr->m_tcpSocket->acceptSocket(&newSocket);
+				auto acceptResult = socketPtr->m_tcpSocket->acceptSocket(&newSocket);
 				if (acceptResult.first == ErrorCode::SocketWouldBlock)
 				{
 					break;
@@ -50,7 +50,7 @@ namespace tra::netcode::engine::internal
 					break;
 				}
 
-				auto& setBlockingResult = newSocket->setBlocking(false);
+				auto setBlockingResult = newSocket->setBlocking(false);
 				if (setBlockingResult.first != ErrorCode::Success)
 				{
 					TRA_ERROR_LOG("AcceptConnectionSystem::update: Failed to set non-blocking mode on accepted socket. ErrorCode: %d, Last socket error: %d",

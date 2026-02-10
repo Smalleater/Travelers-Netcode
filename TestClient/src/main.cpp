@@ -19,6 +19,9 @@ int main() {
 	ec = Client::Get()->ConnectTo("127.0.0.1", 2025);
 	if (ec != ErrorCode::Success) return -1;
 
+	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
+	message->string = "Hello World from client!";
+
 	while (Client::Get()->IsConnected())
 	{
 		Client::Get()->beginUpdate();
@@ -30,8 +33,6 @@ int main() {
 			std::cout << "Received from server: " << helloMessage->string << std::endl;
 		}
 
-		std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-		message->string = "Hello World from client!";
 		Client::Get()->sendTcpMessage(message);
 
 		Client::Get()->endUpdate();

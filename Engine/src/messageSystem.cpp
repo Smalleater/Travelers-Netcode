@@ -38,7 +38,7 @@ namespace tra::netcode::engine::internal
 
 			sendMessagePtr->m_messagesToSend.clear();
 
-			for (auto& messageIt = sendMessagePtr->m_serializedToSend.begin(); messageIt != sendMessagePtr->m_serializedToSend.end();)
+			for (auto messageIt = sendMessagePtr->m_serializedToSend.begin(); messageIt != sendMessagePtr->m_serializedToSend.end();)
 			{
 				int byteSent = 0;
 				auto sendDataResult = socketPtr->m_tcpSocket->sendData(messageIt->data() + sendMessagePtr->m_lastMessageByteSent,
