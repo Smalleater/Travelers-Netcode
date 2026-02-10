@@ -54,4 +54,16 @@ namespace tra::ecs
 	}
 }
 
+namespace std
+{
+	template<>
+	struct hash<tra::ecs::Entity>
+	{
+		size_t operator()(const tra::ecs::Entity& _entity) const
+		{
+			return _entity.m_idAndVersion;
+		}
+	};
+}
+
 #endif
