@@ -29,7 +29,7 @@ namespace tra::netcode::server
 		return m_singleton;
 	}
 
-	ErrorCode Server::Start(uint16_t _port)
+	ErrorCode Server::Start(uint16_t _port, uint8_t _tickRate)
 	{
 		if (isRunning())
 		{
@@ -42,6 +42,13 @@ namespace tra::netcode::server
 			TRA_ERROR_LOG("Server: Network engine is not initialized.");
 			return ErrorCode::NetworkEngineNotInitialized;
 		}
+
+		m_tickRate = _tickRate;
+		m_currentTick = 0;
+		m_fixedDeltaTime = 1.f / _tickRate;
+		m_elapsedTime = 0.f;
+
+		m_lastElapsedTimeUpdate = m_clock.now();
 
 		ErrorCode ec;
 
@@ -88,6 +95,23 @@ namespace tra::netcode::server
 		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ListeningTag>(m_networkEngine->getSelfEntity());
 	}
 
+	TRA_API bool Server::canUpdateNetcode()
+	{
+		if (!isRunning())
+		{
+			return false;
+		}
+
+		return m_elapsedTime >= m_fixedDeltaTime;
+	}
+
+	void Server::updateElapsedTime()
+	{
+		std::chrono::time_point currentClockTime = m_clock.now();
+		m_elapsedTime += std::chrono::duration<float>(currentClockTime - m_lastElapsedTimeUpdate).count();
+		m_lastElapsedTimeUpdate = currentClockTime;
+	}
+
 	void Server::beginUpdate()
 	{
 		if (!isRunning())
@@ -95,6 +119,14 @@ namespace tra::netcode::server
 			TRA_ERROR_LOG("Server: Cannot begin update, server is not running.");
 			return;
 		}
+
+		if (!canUpdateNetcode())
+		{
+			TRA_ERROR_LOG("Server: Cannot begin update, elapsedTime is less than fixedDeltaTime.");
+			return;
+		}
+
+		++m_currentTick;
 
 		m_networkEngine->beginUpdate();
 	}
@@ -107,7 +139,20 @@ namespace tra::netcode::server
 			return;
 		}
 
+		if (!canUpdateNetcode())
+		{
+			TRA_ERROR_LOG("Server: Cannot begin update, elapsedTime is less than fixedDeltaTime.");
+			return;
+		}
+
 		m_networkEngine->endUpdate();
+
+		m_elapsedTime -= m_fixedDeltaTime;
+	}
+
+	uint8_t Server::getTickRate()
+	{
+		return m_tickRate;
 	}
 
 	ecs::World* Server::getEcsWorld()

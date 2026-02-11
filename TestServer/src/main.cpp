@@ -19,7 +19,7 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->Start(2025);
+	ec = Server::Get()->Start(2025, 30);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
@@ -27,27 +27,31 @@ int main() {
 
 	while (Server::Get()->isRunning())
 	{
-		Server::Get()->beginUpdate();
-
-		for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
-			ecs::WithComponent<>{},
-			ecs::WithoutComponent<>{},
-			ecs::WithTag<tags::ConnectedTag>{},
-			ecs::WithoutTag<tags::SelfTag>{}))
+		Server::Get()->updateElapsedTime();
+		while (Server::Get()->canUpdateNetcode())
 		{
-			auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
-			for (auto message : getMessageResult)
+			std::cout << "Update" << std::endl;
+
+			Server::Get()->beginUpdate();
+
+			for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
+				ecs::WithComponent<>{},
+				ecs::WithoutComponent<>{},
+				ecs::WithTag<tags::ConnectedTag>{},
+				ecs::WithoutTag<tags::SelfTag>{}))
 			{
-				message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-				std::cout << "Received from client " << entity.id() << ": " << helloMessage->string << std::endl;
+				auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
+				for (auto message : getMessageResult)
+				{
+					message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
+					std::cout << "Received from client " << entity.id() << ": " << helloMessage->string << std::endl;
+				}
+
+				Server::Get()->sendTcpMessage(entity, message);
 			}
 
-			Server::Get()->sendTcpMessage(entity, message);
+			Server::Get()->endUpdate();
 		}
-
-		Server::Get()->endUpdate();
-
-		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 	return 0;

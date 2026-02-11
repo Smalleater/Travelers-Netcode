@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <chrono>
 
 #include "TRA/netcode/engine/networkEngine.hpp"
 
@@ -22,14 +23,17 @@ namespace tra::netcode::server
 
 		TRA_API static Server* Get();
 
-		TRA_API ErrorCode Start(uint16_t _port);
+		TRA_API ErrorCode Start(uint16_t _port, uint8_t _tickRate = 30);
 		TRA_API ErrorCode Stop();
 
 		TRA_API bool isRunning() const;
+		TRA_API bool canUpdateNetcode();
 
+		TRA_API void updateElapsedTime();
 		TRA_API void beginUpdate();
 		TRA_API void endUpdate();
 
+		TRA_API uint8_t getTickRate();
 		TRA_API ecs::World* getEcsWorld();
 
 		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message);
@@ -39,6 +43,16 @@ namespace tra::netcode::server
 		static Server* m_singleton;
 
 		engine::NetworkEngine* m_networkEngine;
+		
+		uint64_t m_currentTick;
+
+		std::chrono::time_point<std::chrono::high_resolution_clock> m_lastElapsedTimeUpdate;
+
+		float m_fixedDeltaTime;
+		float m_elapsedTime;
+
+		uint8_t m_tickRate;
+		std::chrono::high_resolution_clock m_clock;
 
 		Server();
 		~Server();
