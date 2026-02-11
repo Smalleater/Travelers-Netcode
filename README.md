@@ -1,4 +1,4 @@
-# Travelers Netcode (TRA)
+# Travelers Netcode
 
 ---
 
