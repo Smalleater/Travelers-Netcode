@@ -14,13 +14,7 @@ The ultimate goal is to develop TRA into a fully featured netcode specifically t
 
 ## 🚧 Current Development Status
 
-I am currently working on a **custom ECS (Entity Component System) library** that will serve as a core foundation for the netcode.
-This ECS library is designed specifically to fit the needs of multiplayer and networking (synchronization, entity ownership, replication, etc.).
-
-➡️ **Active netcode development is temporarily paused** while this ECS library is under development.
-Once the ECS library reaches a stable and usable state, I will **resume and accelerate work on the netcode**, integrating it tightly with the ECS for cleaner architecture and better scalability.
-
-This approach allows the netcode to be built on a solid and future-proof foundation rather than retrofitting ECS concepts later.
+I am currently adding a basic server-side tick system as well as snapshots to begin implementing interpolation.
 
 ---
 
