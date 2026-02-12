@@ -19,7 +19,7 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->Start(2025, 30);
+	ec = Server::Get()->Start(2025, 1);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
