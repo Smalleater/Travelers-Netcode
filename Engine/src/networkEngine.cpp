@@ -320,6 +320,11 @@ namespace tra::netcode::engine
 		m_fixedDeltaTime = 1.f / _tickRate;
 	}
 
+	uint8_t NetworkEngine::getTickRate()
+	{
+		return m_tickRate;
+	}
+
 	uint32_t NetworkEngine::getCurrentTick()
 	{
 		return m_currentTick;

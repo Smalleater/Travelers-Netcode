@@ -27,6 +27,9 @@ namespace tra::netcode::server
 		TRA_API ErrorCode Stop();
 
 		TRA_API bool isRunning() const;
+
+		TRA_API uint32_t getCurrentTick();
+		TRA_API float getFixedDeltaTime();
 		
 		TRA_API bool canUpdateNetcode();
 
@@ -57,6 +60,9 @@ namespace tra::netcode::server
 
 		Server();
 		~Server();
+
+		void initializeNewClient();
+		void setClientReady();
 	};
 }
 

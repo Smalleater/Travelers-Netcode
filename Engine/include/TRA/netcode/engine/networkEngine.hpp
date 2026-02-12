@@ -32,6 +32,7 @@ namespace tra::netcode::engine
 
 		TRA_API void setTickRate(uint8_t _tickRate);
 
+		TRA_API uint8_t getTickRate();
 		TRA_API uint32_t getCurrentTick();
 		TRA_API float getFixedDeltaTime();
 

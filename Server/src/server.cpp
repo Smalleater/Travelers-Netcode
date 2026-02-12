@@ -5,6 +5,9 @@
 #include "TRA/netcode/engine/tags.hpp"
 #include "TRA/netcode/engine/message.hpp"
 
+#include "TRA/netcode/server/tags.hpp"
+#include "TRA/netcode/server/messages.hpp"
+
 namespace tra::netcode::server
 {
 	Server* Server::m_singleton = nullptr;
@@ -91,6 +94,16 @@ namespace tra::netcode::server
 		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ListeningTag>(m_networkEngine->getSelfEntity());
 	}
 
+	uint32_t Server::getCurrentTick()
+	{
+		return m_networkEngine->getCurrentTick();
+	}
+
+	float Server::getFixedDeltaTime()
+	{
+		return m_networkEngine->getFixedDeltaTime();
+	}
+
 	TRA_API bool Server::canUpdateNetcode()
 	{
 		if (!isRunning())
@@ -126,6 +139,9 @@ namespace tra::netcode::server
 		}
 
 		m_networkEngine->endUpdate();
+
+		setClientReady();
+		initializeNewClient();
 	}
 
 	ecs::World* Server::getEcsWorld()
@@ -152,5 +168,58 @@ namespace tra::netcode::server
 		}
 
 		return m_networkEngine->getTcpMessages(_entity, _messageType);
+	}
+
+	void Server::initializeNewClient()
+	{
+		ecs::World* world = m_networkEngine->getEcsWorld();
+
+		auto& queryResult = world->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<engine::tags::NewConnectionTag>{},
+			ecs::WithoutTag<tags::WaitingClientIsReadyTag>{});
+
+		if (queryResult.size() == 0)
+		{
+			return;
+		}
+
+		auto initializeClientMessage = std::make_shared<message::InitializeClientMessage>();
+		initializeClientMessage->m_tickRate = m_networkEngine->getTickRate();
+
+		for (auto& [entity] : queryResult)
+		{
+			m_networkEngine->sendTcpMessage(entity, initializeClientMessage);
+
+			world->addTag<tags::WaitingClientIsReadyTag>(entity);
+		}
+	}
+
+	void Server::setClientReady()
+	{
+		ecs::World* world = m_networkEngine->getEcsWorld();
+
+		auto& queryResult = world->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<tags::WaitingClientIsReadyTag>{});
+
+		if (queryResult.size() == 0)
+		{
+			return;
+		}
+
+		for (auto& [entity] : queryResult)
+		{
+			auto& clientIsReadyMessages = m_networkEngine->getTcpMessages(entity, "ClientIsReadyMessage");
+			if (clientIsReadyMessages.size() == 0)
+			{
+				continue;
+			}
+
+			world->removeTag<tags::WaitingClientIsReadyTag>(entity);
+			world->addTag<tags::ClientIsReadyTag>(entity);
+		}
 	}
 }

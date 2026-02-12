@@ -19,8 +19,10 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->Start(2025, 1);
+	ec = Server::Get()->Start(2025, UINT8_MAX);
 	if (ec != ErrorCode::Success) return -1;
+
+	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl; 
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
 	message->string = "Hello World from server!";
@@ -30,9 +32,9 @@ int main() {
 		Server::Get()->updateElapsedTime();
 		while (Server::Get()->canUpdateNetcode())
 		{
-			std::cout << "Update" << std::endl;
-
 			Server::Get()->beginUpdate();
+
+			std::cout << "Current tick: " << Server::Get()->getCurrentTick() << std::endl;
 
 			for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
 				ecs::WithComponent<>{},
