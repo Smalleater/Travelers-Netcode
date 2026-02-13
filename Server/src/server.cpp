@@ -53,8 +53,8 @@ namespace tra::netcode::server
 			return ec;
 		}*/
 
-		m_networkEngine->resetTickSystem();
 		m_networkEngine->setTickRate(_tickRate);
+		m_networkEngine->resetElapsedTime();
 
 		TRA_INFO_LOG("Server: Started successfully on port %d.", _port);
 		return ErrorCode::Success;
@@ -126,10 +126,10 @@ namespace tra::netcode::server
 			return;
 		}
 
-		m_networkEngine->endUpdate();
-
 		setClientReady();
 		initializeNewClient();
+
+		m_networkEngine->endUpdate();
 	}
 
 	ecs::World* Server::getEcsWorld()

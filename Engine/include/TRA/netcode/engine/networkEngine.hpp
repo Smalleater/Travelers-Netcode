@@ -36,7 +36,7 @@ namespace tra::netcode::engine
 		TRA_API uint32_t getCurrentTick();
 		TRA_API float getFixedDeltaTime();
 
-		TRA_API void resetTickSystem();
+		TRA_API void resetElapsedTime();
 
 		TRA_API bool canUpdateNetcode();
 

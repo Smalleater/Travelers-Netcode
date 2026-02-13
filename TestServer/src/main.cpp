@@ -21,7 +21,7 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 1);
+	ec = Server::Get()->start(2025, 60);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl; 

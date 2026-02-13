@@ -129,9 +129,9 @@ namespace tra::netcode::client
 			return;
 		}
 
-		m_networkEngine->endUpdate();
-
 		receiveInitializeClient();
+
+		m_networkEngine->endUpdate();
 	}
 
 	ecs::World* Client::getEcsWorld()
@@ -186,8 +186,8 @@ namespace tra::netcode::client
 		{
 			auto initializeClientMessage = static_cast<message::InitializeClientMessage*>(initializeClientMessages.at(0).get());
 
-			m_networkEngine->resetTickSystem();
 			m_networkEngine->setTickRate(initializeClientMessage->m_tickRate);
+			m_networkEngine->resetElapsedTime();
 
 			m_networkEngine->getEcsWorld()->addTag<tags::ClientIsReadyTag>(selfEntity);
 

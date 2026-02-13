@@ -27,6 +27,14 @@ namespace tra::netcode::engine
 
 		m_selfEntity = m_ecsWorld->createEntity();
 		m_ecsWorld->addTag<tags::SelfTag>(m_selfEntity);
+
+		m_tickRate = 0;
+		m_fixedDeltaTime = 0;
+
+		m_currentTick = 0;
+		m_elapsedTime = 0;
+
+		m_lastElapsedTimeUpdate = m_clock.now();
 	}
 
 	NetworkEngine::~NetworkEngine()
@@ -335,14 +343,9 @@ namespace tra::netcode::engine
 		return m_fixedDeltaTime;
 	}
 
-	void NetworkEngine::resetTickSystem()
+	void NetworkEngine::resetElapsedTime()
 	{
-		m_tickRate = 0;
-		m_fixedDeltaTime = 0;
-
-		m_currentTick = 0;
 		m_elapsedTime = 0;
-
 		m_lastElapsedTimeUpdate = m_clock.now();
 	}
 
