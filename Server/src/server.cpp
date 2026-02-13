@@ -14,7 +14,7 @@ namespace tra::netcode::server
 
 	Server::~Server()
 	{
-		Stop();
+		stop();
 	}
 
 	Server* Server::Get()
@@ -27,7 +27,7 @@ namespace tra::netcode::server
 		return m_singleton;
 	}
 
-	ErrorCode Server::Start(uint16_t _port, uint8_t _tickRate)
+	ErrorCode Server::start(uint16_t _port, uint8_t _tickRate)
 	{
 		if (isRunning())
 		{
@@ -60,7 +60,7 @@ namespace tra::netcode::server
 		return ErrorCode::Success;
 	}
 
-	ErrorCode Server::Stop()
+	ErrorCode Server::stop()
 	{
 		if (!isRunning())
 		{

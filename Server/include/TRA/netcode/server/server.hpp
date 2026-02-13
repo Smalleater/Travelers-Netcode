@@ -23,8 +23,8 @@ namespace tra::netcode::server
 
 		TRA_API static Server* Get();
 
-		TRA_API ErrorCode Start(uint16_t _port, uint8_t _tickRate = 20);
-		TRA_API ErrorCode Stop();
+		TRA_API ErrorCode start(uint16_t _port, uint8_t _tickRate = 20);
+		TRA_API ErrorCode stop();
 
 		TRA_API bool isRunning() const;
 

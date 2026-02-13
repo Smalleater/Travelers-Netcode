@@ -1,14 +1,16 @@
-#include "TRA/netcode/server/server.hpp"
-
 #include <thread>
 #include <chrono>
 
 #include "TRA/debugUtils.hpp"
 
+#include "TRA/netcode/server/server.hpp"
+#include "TRA/netcode/server/tags.hpp"
+
 #include "TRA/netcode/engine/message.hpp"
 #include "TRA/netcode/engine/tags.hpp"
 
 using namespace tra;
+using namespace tra::netcode;
 using namespace tra::netcode::engine;
 using namespace tra::netcode::server;
 
@@ -19,7 +21,7 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->Start(2025, 20);
+	ec = Server::Get()->start(2025, 1);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl; 
@@ -34,13 +36,11 @@ int main() {
 		{
 			Server::Get()->beginUpdate();
 
-			std::cout << "Current tick: " << Server::Get()->getCurrentTick() << std::endl;
-
 			for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
 				ecs::WithComponent<>{},
 				ecs::WithoutComponent<>{},
-				ecs::WithTag<tags::ConnectedTag>{},
-				ecs::WithoutTag<tags::SelfTag>{}))
+				ecs::WithTag<engine::tags::ConnectedTag, server::tags::ClientIsReadyTag>{},
+				ecs::WithoutTag<engine::tags::SelfTag>{}))
 			{
 				auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
 				for (auto message : getMessageResult)
