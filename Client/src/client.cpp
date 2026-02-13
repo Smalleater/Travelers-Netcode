@@ -5,18 +5,16 @@
 #include "TRA/netcode/engine/tags.hpp"
 #include "TRA/netcode/engine/message.hpp"
 
+#include "TRA/netcode/client/tags.hpp"
+#include "TRA/netcode/client/messages.hpp"
+
 namespace tra::netcode::client
 {
 	Client* Client::m_singleton = nullptr;
 
-	Client::Client()
-	{
-		m_networkEngine = new engine::NetworkEngine;
-	}
-
 	Client::~Client()
 	{
-		Disconnect();
+		disconnect();
 	}
 
 	Client* Client::Get()
@@ -28,27 +26,24 @@ namespace tra::netcode::client
 		return m_singleton;
 	}
 
-	ErrorCode Client::ConnectTo(const std::string& _address, uint16_t _port)
+	ErrorCode Client::connectTo(const std::string& _address, uint16_t _port)
 	{
 		TRA_ASSERT_REF_PTR_OR_COPIABLE(_address);
 
-		if (IsConnected())
+		if (isConnected())
 		{
 			TRA_DEBUG_LOG("Client: ConnectTo called but client is already connected.");
 			return ErrorCode::ClientAlreadyConnected;
 		}
 
-		if (!m_networkEngine)
-		{
-			TRA_ERROR_LOG("Client: Network engine is not initialized.");
-			return ErrorCode::NetworkEngineNotInitialized;
-		}
+		m_networkEngine = std::make_unique<engine::NetworkEngine>();
 
 		ErrorCode ec;
 
 		ec = m_networkEngine->startTcpConnectToAddress(_address, _port, false);
 		if (ec != ErrorCode::Success)
 		{
+			m_networkEngine.reset();
 			return ec;
 		}
 
@@ -63,36 +58,63 @@ namespace tra::netcode::client
 		return ErrorCode::Success;
 	}
 
-	ErrorCode Client::Disconnect()
+	ErrorCode Client::disconnect()
 	{
-		if (!IsConnected())
+		if (!isConnected())
 		{
 			TRA_DEBUG_LOG("Client: Disconnect called but client is not connected.");
 			return ErrorCode::Success;
 		}
 
-		if (!m_networkEngine)
-		{
-			TRA_ERROR_LOG("Client: Network engine is not initialized.");
-			return ErrorCode::NetworkEngineNotInitialized;
-		}
-
 		m_networkEngine->stopTcpConnect();
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
+
+		m_networkEngine.reset();
 
 		TRA_INFO_LOG("Client: Disconnected successfully.");
 		return ErrorCode::Success;
 	}
 
-	bool Client::IsConnected() const
+	bool Client::isConnected() const
 	{
-		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ConnectedTag>(m_networkEngine->getSelfEntity());
+		return m_networkEngine && m_networkEngine->getEcsWorld()->hasTag<engine::tags::ConnectedTag>(m_networkEngine->getSelfEntity());
+	}
+
+	bool Client::isReady() const
+	{
+		return m_networkEngine && m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(m_networkEngine->getSelfEntity());
+	}
+
+	uint32_t Client::getCurrentTick()
+	{
+		return m_networkEngine->getCurrentTick();
+	}
+
+	float Client::getFixedDeltaTime()
+	{
+		return m_networkEngine->getFixedDeltaTime();
+	}
+
+	bool Client::canUpdateNetcode()
+	{
+		if (!isConnected())
+		{
+			return false;
+		}
+
+		return m_networkEngine->canUpdateNetcode();
+	}
+
+	void Client::updateElapsedTime()
+	{
+		m_networkEngine->updateElapsedTime();
 	}
 
 	void Client::beginUpdate()
 	{
-		if (!IsConnected())
+		if (!isConnected())
 		{
+			TRA_ERROR_LOG("Client: Cannot begin update, client is not connected.");
 			return;
 		}
 
@@ -101,12 +123,15 @@ namespace tra::netcode::client
 
 	void Client::endUpdate()
 	{
-		if (!IsConnected())
+		if (!isConnected())
 		{
+			TRA_ERROR_LOG("Client: Cannot end update, client is not connected.");
 			return;
 		}
 
 		m_networkEngine->endUpdate();
+
+		receiveInitializeClient();
 	}
 
 	ecs::World* Client::getEcsWorld()
@@ -116,21 +141,58 @@ namespace tra::netcode::client
 
 	ErrorCode Client::sendTcpMessage(std::shared_ptr<engine::Message> _message)
 	{
-		if (!IsConnected())
+		if (!isConnected())
 		{
+			TRA_ERROR_LOG("Client: Cannot send TCP message, client is not connected.");
 			return ErrorCode::ClientNotConnected;
 		}
 
-		return m_networkEngine->sendTcpMessage(m_networkEngine->getSelfEntity(), _message);
+		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
+
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(selfEntity))
+		{
+			TRA_ERROR_LOG("Client: Cannot send TCP message to server, client is not ready.");
+			return ErrorCode::ClientIsNotReady;
+		}
+
+		return m_networkEngine->sendTcpMessage(selfEntity, _message);
 	}
 
 	std::vector<std::shared_ptr<engine::Message>> Client::getTcpMessages(const std::string& _messageType)
 	{
-		if (!IsConnected())
+		if (!isConnected())
 		{
+			TRA_ERROR_LOG("Client: Cannot get TCP message, client is not connected.");
 			return {};
 		}
 
-		return m_networkEngine->getTcpMessages(m_networkEngine->getSelfEntity(), _messageType);
+		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
+
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(selfEntity))
+		{
+			TRA_ERROR_LOG("Client: Cannot get TCP message to server, client is not ready.");
+			return {};
+		}
+
+		return m_networkEngine->getTcpMessages(selfEntity, _messageType);
+	}
+
+	void Client::receiveInitializeClient()
+	{
+		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
+
+		auto& initializeClientMessages = m_networkEngine->getTcpMessages(selfEntity, "InitializeClientMessage");
+		if (initializeClientMessages.size() > 0)
+		{
+			auto initializeClientMessage = static_cast<message::InitializeClientMessage*>(initializeClientMessages.at(0).get());
+
+			m_networkEngine->resetTickSystem();
+			m_networkEngine->setTickRate(initializeClientMessage->m_tickRate);
+
+			m_networkEngine->getEcsWorld()->addTag<tags::ClientIsReadyTag>(selfEntity);
+
+			auto clientIsReadyMessage = std::make_shared<message::ClientIsReadyMessage>();
+			m_networkEngine->sendTcpMessage(selfEntity, clientIsReadyMessage);
+		}
 	}
 }

@@ -314,14 +314,68 @@ namespace tra::netcode::engine
 		return ErrorCode::Success;
 	}*/
 
+	void NetworkEngine::setTickRate(uint8_t _tickRate)
+	{
+		m_tickRate = _tickRate;
+		m_fixedDeltaTime = 1.f / _tickRate;
+	}
+
+	uint8_t NetworkEngine::getTickRate()
+	{
+		return m_tickRate;
+	}
+
+	uint32_t NetworkEngine::getCurrentTick()
+	{
+		return m_currentTick;
+	}
+
+	float NetworkEngine::getFixedDeltaTime()
+	{
+		return m_fixedDeltaTime;
+	}
+
+	void NetworkEngine::resetTickSystem()
+	{
+		m_tickRate = 0;
+		m_fixedDeltaTime = 0;
+
+		m_currentTick = 0;
+		m_elapsedTime = 0;
+
+		m_lastElapsedTimeUpdate = m_clock.now();
+	}
+
+	void NetworkEngine::updateElapsedTime()
+	{
+		std::chrono::time_point currentClockTime = m_clock.now();
+		m_elapsedTime += std::chrono::duration<float>(currentClockTime - m_lastElapsedTimeUpdate).count();
+		m_lastElapsedTimeUpdate = currentClockTime;
+	}
+
+	TRA_API bool NetworkEngine::canUpdateNetcode()
+	{
+		return m_elapsedTime >= m_fixedDeltaTime;
+	}
+
 	void NetworkEngine::beginUpdate()
 	{
-		m_ecsWorld->updateBeginSystems();
+		if (canUpdateNetcode())
+		{
+			++m_currentTick;
+
+			m_ecsWorld->updateBeginSystems();
+		}
 	}
 
 	void NetworkEngine::endUpdate()
 	{
-		m_ecsWorld->updateEndSystems();
+		if (canUpdateNetcode())
+		{
+			m_ecsWorld->updateEndSystems();
+
+			m_elapsedTime -= m_fixedDeltaTime;
+		}
 	}
 
 	ErrorCode NetworkEngine::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<Message> _message)
