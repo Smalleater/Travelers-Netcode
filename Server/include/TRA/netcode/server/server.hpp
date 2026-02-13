@@ -46,7 +46,7 @@ namespace tra::netcode::server
 	private:
 		static Server* m_singleton;
 
-		engine::NetworkEngine* m_networkEngine;
+		std::unique_ptr<engine::NetworkEngine> m_networkEngine;
 		
 		uint64_t m_currentTick;
 
@@ -58,7 +58,7 @@ namespace tra::netcode::server
 		uint8_t m_tickRate;
 		std::chrono::high_resolution_clock m_clock;
 
-		Server();
+		Server() = default;
 		~Server();
 
 		void initializeNewClient();

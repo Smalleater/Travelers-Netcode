@@ -12,11 +12,6 @@ namespace tra::netcode::server
 {
 	Server* Server::m_singleton = nullptr;
 
-	Server::Server()
-	{
-		m_networkEngine = new engine::NetworkEngine();
-	}
-
 	Server::~Server()
 	{
 		Stop();
@@ -40,17 +35,14 @@ namespace tra::netcode::server
 			return ErrorCode::ServerAlreadyStarted;
 		}
 
-		if (!m_networkEngine)
-		{
-			TRA_ERROR_LOG("Server: Network engine is not initialized.");
-			return ErrorCode::NetworkEngineNotInitialized;
-		}
+		m_networkEngine = std::make_unique<engine::NetworkEngine>();
 
 		ErrorCode ec;
 
 		ec = m_networkEngine->startTcpListenOnPort(_port, false);
 		if (ec != ErrorCode::Success)
 		{
+			m_networkEngine.reset();
 			return ec;
 		}
 
@@ -76,14 +68,10 @@ namespace tra::netcode::server
 			return ErrorCode::Success;
 		}
 
-		if (!m_networkEngine)
-		{
-			TRA_ERROR_LOG("Server: Network engine is not initialized.");
-			return ErrorCode::NetworkEngineNotInitialized;
-		}
-
 		m_networkEngine->stopTcpListen();
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
+
+		m_networkEngine.reset();
 
 		TRA_INFO_LOG("Server: Stopped successfully.");
 		return ErrorCode::Success;
@@ -91,7 +79,7 @@ namespace tra::netcode::server
 
 	bool Server::isRunning() const
 	{
-		return m_networkEngine->getEcsWorld()->hasTag<engine::tags::ListeningTag>(m_networkEngine->getSelfEntity());
+		return m_networkEngine && m_networkEngine->getEcsWorld()->hasTag<engine::tags::ListeningTag>(m_networkEngine->getSelfEntity());
 	}
 
 	uint32_t Server::getCurrentTick()
@@ -104,7 +92,7 @@ namespace tra::netcode::server
 		return m_networkEngine->getFixedDeltaTime();
 	}
 
-	TRA_API bool Server::canUpdateNetcode()
+	bool Server::canUpdateNetcode()
 	{
 		if (!isRunning())
 		{
@@ -157,6 +145,12 @@ namespace tra::netcode::server
 			return ErrorCode::ServerNotRunning;
 		}
 
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot send TCP message to entity: %ull, client is not ready.", _entity.id());
+			return ErrorCode::ClientIsNotReady;
+		}
+
 		return m_networkEngine->sendTcpMessage(_entity, _message);
 	}
 
@@ -164,6 +158,13 @@ namespace tra::netcode::server
 	{
 		if (!isRunning())
 		{
+			TRA_ERROR_LOG("Server: Cannot get TCP message, server is not running.");
+			return {};
+		}
+
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot get TCP message to entity: %ull, client is not ready.", _entity.id());
 			return {};
 		}
 

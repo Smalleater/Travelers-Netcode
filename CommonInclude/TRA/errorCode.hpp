@@ -14,6 +14,7 @@ namespace tra
 		// Server Error
 		ServerAlreadyStarted,
 		ServerNotRunning,
+		ClientIsNotReady,
 
 		// Client Error
 		ClientAlreadyConnected,

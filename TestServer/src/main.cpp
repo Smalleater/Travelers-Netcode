@@ -19,7 +19,7 @@ DECLARE_MESSAGE_END()
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->Start(2025, UINT8_MAX);
+	ec = Server::Get()->Start(2025, 20);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl; 
