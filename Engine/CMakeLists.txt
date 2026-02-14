@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(TRA_Engine VERSION 0.1)
+project(TRA_Netcode_Engine VERSION 0.1)
 
 # Use C++17 standard
 set(CMAKE_CXX_STANDARD 17)
@@ -12,10 +12,10 @@ link_directories(${EXT_LIBS_DIR}/lib)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Build as a shared library (.dll on Windows, .so on Linux)
-add_library(tra_engine SHARED ${SOURCES})
+add_library(tra_netcode_engine SHARED ${SOURCES})
 
 # Set include directories (public headers and internal headers)
-target_include_directories(tra_engine
+target_include_directories(tra_netcode_engine
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE 
@@ -24,37 +24,37 @@ target_include_directories(tra_engine
 )
 
 # Define export macro for DLL/SO symbol visibility
-target_compile_definitions(tra_engine PRIVATE TRA_EXPORTS)
+target_compile_definitions(tra_netcode_engine PRIVATE TRA_EXPORTS)
 
-target_link_libraries(tra_engine PUBLIC tra_core)
-target_link_libraries(tra_engine PUBLIC tra_ecs)
+target_link_libraries(tra_netcode_engine PUBLIC tra_netcode_core)
+target_link_libraries(tra_netcode_engine PUBLIC tra_ecs)
 
-target_compile_definitions(tra_engine
+target_compile_definitions(tra_netcode_engine
     PUBLIC
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
 )
 
-add_custom_command(TARGET tra_engine POST_BUILD 
+add_custom_command(TARGET tra_netcode_engine POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-    $<TARGET_FILE:tra_engine> ${COMMON_EXPORT_LIB_DIR}/)
+    $<TARGET_FILE:tra_netcode_engine> ${COMMON_EXPORT_LIB_DIR}/)
 
-add_custom_command(TARGET tra_engine POST_BUILD 
+add_custom_command(TARGET tra_netcode_engine POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-    $<TARGET_LINKER_FILE:tra_engine> ${COMMON_EXPORT_LIB_DIR}/)
+    $<TARGET_LINKER_FILE:tra_netcode_engine> ${COMMON_EXPORT_LIB_DIR}/)
 
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/TRA/netcode/engine/*")
-add_custom_command(TARGET tra_engine POST_BUILD
+add_custom_command(TARGET tra_netcode_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${HEADER_FILES} ${COMMON_EXPORT_INCLUDE_DIR}/engine/)
 
 file(GLOB HEADER_FILES "${COMMON_INCLUDE_DIR}/TRA/*")
-add_custom_command(TARGET tra_engine POST_BUILD
+add_custom_command(TARGET tra_netcode_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${HEADER_FILES} ${COMMON_EXPORT_COMMON_INCLUDE_DIR}/)
 
 file(GLOB HEADER_FILES "${EXT_LIBS_DIR}/header/TRA/ecs/*")
-add_custom_command(TARGET tra_engine POST_BUILD
+add_custom_command(TARGET tra_netcode_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${HEADER_FILES} ${CMAKE_SOURCE_DIR}/ExportDLL/include/TRA/ecs/)
 
@@ -66,13 +66,13 @@ if(WIN32)
         IMPORTED_IMPLIB ${EXT_LIBS_DIR}/lib/tra_ecs.lib
     )
 
-    add_custom_command(TARGET tra_engine POST_BUILD
+    add_custom_command(TARGET tra_netcode_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:tra_ecs>
         ${COMMON_EXPORT_LIB_DIR}/
     )
     
-    add_custom_command(TARGET tra_engine POST_BUILD
+    add_custom_command(TARGET tra_netcode_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_LINKER_FILE:tra_ecs>
         ${COMMON_EXPORT_LIB_DIR}/
@@ -84,7 +84,7 @@ else()
         IMPORTED_LOCATION_RELEASE ${EXT_LIBS_DIR}/so/release/libtra_ecs.so
     )
 
-    add_custom_command(TARGET tra_engine POST_BUILD
+    add_custom_command(TARGET tra_netcode_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:tra_ecs>
         ${COMMON_EXPORT_LIB_DIR}/

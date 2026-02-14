@@ -21,7 +21,7 @@ target_include_directories(tra_testClient
         ${EXT_LIBS_DIR}/header
 )
 
-target_link_libraries(tra_testClient PUBLIC tra_client)
+target_link_libraries(tra_testClient PUBLIC tra_netcode_client)
 
 target_compile_definitions(tra_testClient
     PUBLIC
