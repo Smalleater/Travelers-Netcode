@@ -13,6 +13,8 @@
 #include <functional>
 #include <algorithm>
 
+#include "TRA/netcode/engine/fieldSerializer.hpp"
+
 namespace tra::netcode::engine
 {
 	using FieldValue = std::variant<int, float, std::string>;
@@ -37,23 +39,15 @@ namespace tra::netcode::engine
         TRA_API void registerMessageType(const uint32_t _id,
 			std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
 
-        TRA_API void serializeField(std::vector<uint8_t>& _data, int _value);
-        TRA_API void serializeField(std::vector<uint8_t>& _data, float _value);
-        TRA_API void serializeField(std::vector<uint8_t>& _data, const std::string& _value);
-
 		template<typename T>
 		void registerSerializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
 		{
 			auto& serializers = Message::getSerializers();
 			serializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset, [_fieldOffset](const void* base, std::vector<uint8_t>& data) {
 				const T* field = reinterpret_cast<const T*>(static_cast<const char*>(base) + _fieldOffset);
-				serializeField(data, *field);
+                fieldSerializer::serializeField(data, *field);
 				}));
 		}
-
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, int& _value);
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, float& _value);
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, std::string& _value);
 
 		template<typename T>
 		void registerDeserializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
@@ -62,7 +56,7 @@ namespace tra::netcode::engine
 			deserializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset,
 				[_fieldOffset](const void* base, const std::vector<uint8_t>& data, size_t& offset) {
 					T* field = reinterpret_cast<T*>(static_cast<char*>(const_cast<void*>(base)) + _fieldOffset);
-					deserializeField(data, offset, *field);
+                    fieldSerializer::deserializeField(data, offset, *field);
 				}));
 		}
 	}
