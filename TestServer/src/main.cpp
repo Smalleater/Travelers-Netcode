@@ -7,6 +7,7 @@
 #include "TRA/netcode/server/tags.hpp"
 
 #include "TRA/netcode/engine/message.hpp"
+#include "TRA/netcode/engine/networkComponent.hpp"
 #include "TRA/netcode/engine/tags.hpp"
 
 using namespace tra;

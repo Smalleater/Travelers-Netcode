@@ -8,18 +8,18 @@
 
 namespace tra::netcode::engine
 {
-	using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;
-	using DeserializerFunc = std::function<void(const void*, const std::vector<uint8_t>&, size_t&)>;
-
-	using SerializerEntry = std::pair<std::string, std::pair<size_t, SerializerFunc>>;
-	using DeserializerEntry = std::pair<std::string, std::pair<size_t, DeserializerFunc>>;
-
-	using SerializerMap = std::unordered_map<uint32_t, std::vector<SerializerEntry>>;
-	using DeserializerMap = std::unordered_map<uint32_t, std::vector<DeserializerEntry>>;
-
 	struct TRA_API Serializable
 	{
 	public:
+		using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;
+		using DeserializerFunc = std::function<void(const void*, const std::vector<uint8_t>&, size_t&)>;
+
+		using SerializerEntry = std::pair<std::string, std::pair<size_t, SerializerFunc>>;
+		using DeserializerEntry = std::pair<std::string, std::pair<size_t, DeserializerFunc>>;
+
+		using SerializerMap = std::unordered_map<uint32_t, std::vector<SerializerEntry>>;
+		using DeserializerMap = std::unordered_map<uint32_t, std::vector<DeserializerEntry>>;
+
 		virtual ~Serializable() = default;
 
 		virtual std::vector<uint8_t> serialize() const = 0;

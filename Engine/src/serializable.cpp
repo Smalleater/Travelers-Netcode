@@ -2,13 +2,13 @@
 
 namespace tra::netcode::engine
 {
-    SerializerMap& Serializable::getSerializers()
+    Serializable::SerializerMap& Serializable::getSerializers()
     {
         static SerializerMap serializers;
         return serializers;
     }
 
-    DeserializerMap& Serializable::getDeserializers()
+    Serializable::DeserializerMap& Serializable::getDeserializers()
     {
         static DeserializerMap deserializers;
         return deserializers;

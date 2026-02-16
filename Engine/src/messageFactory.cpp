@@ -14,15 +14,11 @@ namespace tra::netcode::engine
 
     std::vector<uint8_t> MessageFactory::serialize(const Message& _message)
     {
-        TRA_ASSERT_REF_PTR_OR_COPIABLE(_message);
-
         return _message.serialize();
     }
 
     std::shared_ptr<Message> MessageFactory::deserialize(const std::vector<uint8_t>& _payload)
     {
-        TRA_ASSERT_REF_PTR_OR_COPIABLE(_payload);
-
         if (_payload.size() < sizeof(uint32_t))
         {
             throw std::runtime_error("Payload too small");

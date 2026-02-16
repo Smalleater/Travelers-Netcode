@@ -7,8 +7,6 @@
 
 #include "TRA/netcode/engine/message.hpp"
 
-#include "internal/messageHeader.hpp"
-
 namespace tra::netcode::engine
 {
     class MessageFactory

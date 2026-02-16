@@ -17,23 +17,14 @@
 
 namespace tra::netcode::engine
 {
-	using FieldValue = std::variant<int, float, std::string>;
-	using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;
-	using DeserializerFunc = std::function<void(const void*, const std::vector<uint8_t>&, size_t&)>;
-
 	struct TRA_API Message : Serializable
 	{
 	public:
         virtual std::string getType() const = 0;
+
+        static uint32_t hashTypeName(const char* _str);
+        static void registerMessageType(const uint32_t _id, std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
 	};
-
-	namespace internal
-	{
-        TRA_API uint32_t hashTypeName(const char* _str);
-
-        TRA_API void registerMessageType(const uint32_t _id,
-			std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
-	}
 }
 
 #define DECLARE_MESSAGE_BEGIN(MessageType) \
@@ -42,7 +33,7 @@ namespace tra::message { \
     { \
     public: \
         static constexpr const char* MESSAGE_TYPE_NAME = #MessageType; \
-        inline static uint32_t MESSAGE_TYPE_ID = internal::hashTypeName(MESSAGE_TYPE_NAME); \
+        inline static uint32_t MESSAGE_TYPE_ID = Message::hashTypeName(MESSAGE_TYPE_NAME); \
         using CurrentMessageType = MessageType;
 
 #define FIELD(type, name) \
@@ -98,7 +89,7 @@ namespace tra::message { \
     private: \
         struct Register \
         { \
-            Register() { internal::registerMessageType(MESSAGE_TYPE_ID, CurrentMessageType::createFromBytes); } \
+            Register() { Message::registerMessageType(MESSAGE_TYPE_ID, CurrentMessageType::createFromBytes); } \
         }; \
         inline static Register _register{}; \
     }; \
