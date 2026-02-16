@@ -14,9 +14,7 @@ The ultimate goal is to develop TRA into a fully featured netcode specifically t
 
 ## 🚧 Current Development Status
 
-Current step: basic implementation of the tick.
-
-Next step: implementation of a snapshot system.
+Current step: implementation of a snapshot system. 
 
 ---
 
