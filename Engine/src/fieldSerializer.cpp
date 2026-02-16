@@ -1,6 +1,6 @@
 #include "TRA/netcode/engine/fieldSerializer.hpp"
 
-namespace tra::netcode::engine::fieldSerializer
+namespace tra::netcode::engine::field_serializer
 {
     void serializeField(std::vector<uint8_t>& _data, int _value)
     {

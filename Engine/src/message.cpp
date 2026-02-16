@@ -4,18 +4,6 @@
 
 namespace tra::netcode::engine
 {
-    std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, SerializerFunc>>>>& Message::getSerializers()
-    {
-        static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, SerializerFunc>>>> serializers;
-        return serializers;
-    }
-
-    std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, DeserializerFunc>>>>& Message::getDeserializers()
-    {
-        static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, DeserializerFunc>>>> deserializers;
-        return deserializers;
-    }
-
     namespace internal
     {
         uint32_t hashTypeName(const char* _str)

@@ -13,7 +13,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "TRA/netcode/engine/fieldSerializer.hpp"
+#include "TRA/netcode/engine/serializable.hpp"
 
 namespace tra::netcode::engine
 {
@@ -21,15 +21,10 @@ namespace tra::netcode::engine
 	using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;
 	using DeserializerFunc = std::function<void(const void*, const std::vector<uint8_t>&, size_t&)>;
 
-	struct TRA_API Message
+	struct TRA_API Message : Serializable
 	{
 	public:
-		virtual ~Message() = default;
-		virtual std::string getType() const = 0;
-		virtual std::vector<uint8_t> serialize() const = 0;
-
-		static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, SerializerFunc>>>>& getSerializers();
-		static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, DeserializerFunc>>>>& getDeserializers();
+        virtual std::string getType() const = 0;
 	};
 
 	namespace internal
@@ -38,27 +33,6 @@ namespace tra::netcode::engine
 
         TRA_API void registerMessageType(const uint32_t _id,
 			std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
-
-		template<typename T>
-		void registerSerializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
-		{
-			auto& serializers = Message::getSerializers();
-			serializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset, [_fieldOffset](const void* base, std::vector<uint8_t>& data) {
-				const T* field = reinterpret_cast<const T*>(static_cast<const char*>(base) + _fieldOffset);
-                fieldSerializer::serializeField(data, *field);
-				}));
-		}
-
-		template<typename T>
-		void registerDeserializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
-		{
-			auto& deserializers = Message::getDeserializers();
-			deserializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset,
-				[_fieldOffset](const void* base, const std::vector<uint8_t>& data, size_t& offset) {
-					T* field = reinterpret_cast<T*>(static_cast<char*>(const_cast<void*>(base)) + _fieldOffset);
-                    fieldSerializer::deserializeField(data, offset, *field);
-				}));
-		}
 	}
 }
 
@@ -79,8 +53,8 @@ namespace tra::message { \
             name##_Registrar() \
             { \
                 const auto offset = reinterpret_cast<size_t>(&(static_cast<CurrentMessageType*>(nullptr)->name)); \
-                internal::registerSerializer<type>(MESSAGE_TYPE_ID, #name, offset); \
-                internal::registerDeserializer<type>(MESSAGE_TYPE_ID, #name, offset); \
+                Serializable::registerSerializer<type>(MESSAGE_TYPE_ID, #name, offset); \
+                Serializable::registerDeserializer<type>(MESSAGE_TYPE_ID, #name, offset); \
             } \
         }; \
         inline static name##_Registrar name##_reg; \

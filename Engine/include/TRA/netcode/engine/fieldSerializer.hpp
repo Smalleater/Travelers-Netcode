@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-namespace tra::netcode::engine::fieldSerializer
+namespace tra::netcode::engine::field_serializer
 {
     TRA_API void serializeField(std::vector<uint8_t>& _data, int _value);
     TRA_API void serializeField(std::vector<uint8_t>& _data, float _value);
