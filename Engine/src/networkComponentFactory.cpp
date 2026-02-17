@@ -4,12 +4,12 @@ namespace tra::netcode::engine
 {
 	std::unordered_map<uint32_t, NetworkComponentFactory::Creator> NetworkComponentFactory::m_registry;
 
-    void NetworkComponentFactory::registerMessage(const uint32_t _id, Creator _creator)
+    void NetworkComponentFactory::registerNetworkComponent(const uint32_t _id, Creator _creator)
     {
         m_registry[_id] = std::move(_creator);
     }
 
-    std::vector<uint8_t> NetworkComponentFactory::serialize(const Message& _component)
+    std::vector<uint8_t> NetworkComponentFactory::serialize(const NetworkComponent& _component)
     {
         return _component.serialize();
     }
