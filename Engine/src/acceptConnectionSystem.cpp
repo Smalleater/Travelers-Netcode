@@ -10,6 +10,7 @@
 
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
+#include "internal/networkComponentIdBuffer.hpp"
 
 #define MAX_ACCEPTED_CONNECTIONS_PAR_TICK 32
 
@@ -76,6 +77,7 @@ namespace tra::netcode::engine::internal
 			_world->addComponent(entity, components::TcpConnectSocketComponent{ socket });
 			_world->addComponent(entity, components::ReceiveTcpMessageComponent{});
 			_world->addComponent(entity, components::SendTcpMessageComponent{});
+			_world->addComponent(entity, components::NetworkComponentIdBuffer{});
 
 			TRA_INFO_LOG("NetworkEngine: Accepted new TCP connection. Entity ID: %I32u", entity.id());
 		}

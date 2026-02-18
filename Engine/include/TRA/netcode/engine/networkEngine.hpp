@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <chrono>
+#include <type_traits>
 
 #include "TRA/ecs/world.hpp"
 
@@ -13,6 +14,7 @@
 #include "TRA/netcode/core/udpSocket.hpp"
 
 #include "TRA/netcode/engine/message.hpp"
+#include "TRA/netcode/engine/networkComponent.hpp"
 
 namespace tra::netcode::engine
 {
@@ -51,6 +53,60 @@ namespace tra::netcode::engine
 		TRA_API ecs::World* getEcsWorld();
 		TRA_API ecs::Entity getSelfEntity();
 
+		template<typename T>
+		void addNetworkComponent(ecs::Entity _entity, T&& _component)
+		{
+			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
+			{
+				TRA_WARNING_LOG("NetworkEngine: Attempted to add a component that is not a NetworkComponent.");
+				return;
+			}
+
+			if (!entityHasNetworkComponentIdBuffer(_entity))
+			{
+				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", _entity.id());
+				return;
+			}
+
+			if (m_ecsWorld->hasComponent<T>(_entity))
+			{
+				TRA_WARNING_LOG("NetworkEngine: Entity %I32u already has a component of type %s.", _entity.id(), typeid(T).name());
+				return;
+			}
+
+			const size_t componentId = ecs::ComponentLibrary::getComponent<T>().m_id;
+			addIdToNetworkComponentIdBuffer(_entity, componentId);
+
+			m_ecsWorld->addComponent(_entity, std::forward<T>(_component));
+		}
+
+		template<typename T>
+		void removeNetworkComponent(ecs::Entity _entity)
+		{
+			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
+			{
+				TRA_WARNING_LOG("NetworkEngine: Attempted to remove a component that is not a NetworkComponent.");
+				return;
+			}
+
+			if (!entityHasNetworkComponentIdBuffer(_entity))
+			{
+				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", _entity.id());
+				return;
+			}
+
+			if (!m_ecsWorld->hasComponent<T>(_entity))
+			{
+				TRA_WARNING_LOG("NetworkEngine: Entity %I32u does not have a component of type %s.", _entity.id(), typeid(T).name());
+				return;
+			}
+
+			const size_t componentId = ecs::ComponentLibrary::getComponent<T>().m_id;
+			removeIdToNetworkComponentIdBuffer(_entity, componentId);
+
+			m_ecsWorld->removeComponent<T>(_entity);
+		}
+
 	private:
 		//core::UdpSocket* m_udpSocket;
 
@@ -67,6 +123,12 @@ namespace tra::netcode::engine
 
 		uint8_t m_tickRate;
 		std::chrono::high_resolution_clock m_clock;
+
+		TRA_API bool entityHasNetworkComponentIdBuffer(ecs::Entity _entity);
+		bool networkComponentIdBufferHasId(ecs::Entity _entity, size_t _componentId);
+
+		TRA_API void addIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId);
+		TRA_API void removeIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId);
 	};
 }
 

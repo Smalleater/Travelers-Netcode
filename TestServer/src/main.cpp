@@ -15,6 +15,8 @@ using namespace tra::netcode;
 using namespace tra::netcode::engine;
 using namespace tra::netcode::server;
 
+TRA_ECS_REGISTER_TAG(IsInitializedTag);
+
 DECLARE_MESSAGE_BEGIN(HelloWorld)
 FIELD(std::string, string)
 DECLARE_MESSAGE_END()
@@ -33,7 +35,7 @@ int main() {
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
 	message->string = "Hello World from server!";
-
+	
 	while (Server::Get()->isRunning())
 	{
 		Server::Get()->updateElapsedTime();
@@ -45,7 +47,19 @@ int main() {
 				ecs::WithComponent<>{},
 				ecs::WithoutComponent<>{},
 				ecs::WithTag<engine::tags::ConnectedTag, server::tags::ClientIsReadyTag>{},
-				ecs::WithoutTag<engine::tags::SelfTag>{}))
+				ecs::WithoutTag<IsInitializedTag>{}))
+			{
+				Server::Get()->getEcsWorld()->addTag<IsInitializedTag>(entity);
+
+				Server::Get()->addNetworkComponent(entity, networkComponent::TestNetworkComponent{});
+
+				Server::Get()->removeNetworkComponent<networkComponent::TestNetworkComponent>(entity);
+			}
+
+			for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
+				ecs::WithComponent<>{},
+				ecs::WithoutComponent<>{},
+				ecs::WithTag<engine::tags::ConnectedTag, server::tags::ClientIsReadyTag>{}))
 			{
 				auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
 				for (auto message : getMessageResult)

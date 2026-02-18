@@ -14,6 +14,7 @@
 #include "internal/networkSystemRegistrar.hpp"
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
+#include "internal/networkComponentIdBuffer.hpp"
 
 namespace tra::netcode::engine
 {
@@ -164,6 +165,7 @@ namespace tra::netcode::engine
 
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::SendTcpMessageComponent{});
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::ReceiveTcpMessageComponent{});
+		m_ecsWorld->addComponent(m_selfEntity, internal::components::NetworkComponentIdBuffer{});
 
 		m_ecsWorld->addTag<tags::ConnectedTag>(m_selfEntity);
 
@@ -290,6 +292,11 @@ namespace tra::netcode::engine
 		if (m_ecsWorld->hasComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity))
 		{
 			m_ecsWorld->removeComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity);
+		}
+
+		if (m_ecsWorld->hasComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity))
+		{
+			m_ecsWorld->removeComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity);
 		}
 
 #ifdef _WIN32
@@ -422,5 +429,55 @@ namespace tra::netcode::engine
 	ecs::Entity NetworkEngine::getSelfEntity()
 	{
 		return m_selfEntity;
+	}
+
+	bool NetworkEngine::entityHasNetworkComponentIdBuffer(ecs::Entity _entity)
+	{
+		return m_ecsWorld->hasComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+	}
+
+	bool NetworkEngine::networkComponentIdBufferHasId(ecs::Entity _entity, size_t _componentId)
+	{
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		return std::binary_search(componentsId.begin(), componentsId.end(), _componentId);
+	}
+
+	void NetworkEngine::addIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId)
+	{
+		if (networkComponentIdBufferHasId(_entity, _componentId))
+		{
+			return;
+		}
+
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		componentsId.push_back(_componentId);
+
+		std::sort(componentsId.begin(), componentsId.end(),
+			[](const size_t _a, const size_t _b)
+			{
+				return _a < _b;
+			}
+		);
+	}
+
+	void NetworkEngine::removeIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId)
+	{
+		if (!networkComponentIdBufferHasId(_entity, _componentId))
+		{
+			return;
+		}
+
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		auto it = std::lower_bound(componentsId.begin(), componentsId.end(), _componentId);
+		if (it != componentsId.end() && *it == _componentId)
+		{
+			componentsId.erase(it);
+		}
 	}
 }

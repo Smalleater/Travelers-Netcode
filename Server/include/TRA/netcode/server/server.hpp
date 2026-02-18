@@ -43,6 +43,18 @@ namespace tra::netcode::server
 		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message);
 		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(ecs::Entity _entity, const std::string& _messageType);
 
+		template<typename T>
+		void addNetworkComponent(ecs::Entity _entity, T&& _component)
+		{
+			m_networkEngine->addNetworkComponent(_entity, std::forward<T>(_component));
+		}
+
+		template<typename T>
+		void removeNetworkComponent(ecs::Entity _entity)
+		{
+			m_networkEngine->removeNetworkComponent<T>(_entity);
+		}
+
 	private:
 		static Server* m_singleton;
 
