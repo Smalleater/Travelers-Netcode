@@ -3,7 +3,7 @@
 
 #include "internal/messageFactory.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
     class MessageSerializer
     {

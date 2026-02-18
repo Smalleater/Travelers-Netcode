@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <cstring>
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
     std::unordered_map<uint32_t, MessageFactory::Creator> MessageFactory::m_registry;
 

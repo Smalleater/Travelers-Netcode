@@ -19,6 +19,6 @@ namespace tra::netcode::engine
 	void NetworkComponent::registerNetworkComponentType(const uint32_t _id,
 		std::shared_ptr<NetworkComponent>(*_creator)(const std::vector<uint8_t>&))
 	{
-		NetworkComponentFactory::registerNetworkComponent(_id, _creator);
+		internal::NetworkComponentFactory::registerNetworkComponent(_id, _creator);
 	}
 }

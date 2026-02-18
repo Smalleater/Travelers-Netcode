@@ -3,7 +3,7 @@
 
 #include "TRA/netcode/engine/networkComponent.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
 	class NetworkComponentFactory
 	{

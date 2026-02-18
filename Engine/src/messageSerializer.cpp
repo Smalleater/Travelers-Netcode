@@ -7,16 +7,16 @@
 
 #include "internal/messageHeader.hpp"
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
 	std::vector<uint8_t> MessageSerializer::serializePayload(const Message& _message)
 	{
-		return MessageFactory::serialize(_message);
+		return internal::MessageFactory::serialize(_message);
 	}
 
 	std::shared_ptr<Message> MessageSerializer::deserializePayload(const std::vector<uint8_t>& _payload)
 	{
-		return MessageFactory::deserialize(_payload);
+		return internal::MessageFactory::deserialize(_payload);
 	}
 
 	std::vector<uint8_t> MessageSerializer::serializeForNetwork(const std::vector<uint8_t>& _payload, bool _internal)

@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace tra::netcode::engine
+namespace tra::netcode::engine::internal
 {
     struct MessageHeader
     {

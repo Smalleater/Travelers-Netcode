@@ -18,6 +18,6 @@ namespace tra::netcode::engine
 
 	void Message::registerMessageType(const uint32_t _id, std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&))
 	{
-		MessageFactory::registerMessage(_id, _creator);
+		internal::MessageFactory::registerMessage(_id, _creator);
 	}
 }
