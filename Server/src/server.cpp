@@ -53,6 +53,9 @@ namespace tra::netcode::server
 			return ec;
 		}*/
 
+		m_nextClientId = 1;
+		m_clientEntityRegistry = ClientEntityRegistry();
+
 		m_networkEngine->setTickRate(_tickRate);
 		m_networkEngine->resetElapsedTime();
 
@@ -92,6 +95,16 @@ namespace tra::netcode::server
 		return m_networkEngine->getFixedDeltaTime();
 	}
 
+	std::vector<ClientId> Server::getNewClientIds()
+	{
+		return m_newClientIds;
+	}
+
+	std::vector<ClientId> Server::getDisconnectedClientIds()
+	{
+		return m_disconnectedClientIds;
+	}
+
 	bool Server::canUpdateNetcode()
 	{
 		if (!isRunning())
@@ -126,6 +139,8 @@ namespace tra::netcode::server
 			return;
 		}
 
+		disconnectedClient();
+
 		setClientReady();
 		initializeNewClient();
 
@@ -137,24 +152,31 @@ namespace tra::netcode::server
 		return m_networkEngine->getEcsWorld();
 	}
 
-	ErrorCode Server::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message)
+	bool Server::sendTcpMessage(const ClientId _clientId, std::shared_ptr<engine::Message> _message)
 	{
 		if (!isRunning())
 		{
 			TRA_ERROR_LOG("Server: Cannot send TCP message, server is not running.");
-			return ErrorCode::ServerNotRunning;
+			return false;
 		}
 
-		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		const ecs::Entity entity = m_clientEntityRegistry.getEntity(_clientId);
+		if (entity.isNull())
 		{
-			TRA_ERROR_LOG("Server: Cannot send TCP message to entity: %ull, client is not ready.", _entity.id());
-			return ErrorCode::ClientIsNotReady;
+			TRA_ERROR_LOG("Server: Cannot send TCP message, client with ID %u does not exist.", _clientId);
+			return false;
 		}
 
-		return m_networkEngine->sendTcpMessage(_entity, _message);
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot send TCP message to entity: %ull, client is not ready.", entity.id());
+			return false;
+		}
+
+		return m_networkEngine->sendTcpMessage(entity, _message) == ErrorCode::Success ? true : false;
 	}
 
-	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(ecs::Entity _entity, const std::string& _messageType)
+	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(const ClientId _clientId, const std::string& _messageType)
 	{
 		if (!isRunning())
 		{
@@ -162,13 +184,38 @@ namespace tra::netcode::server
 			return {};
 		}
 
-		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		const ecs::Entity entity = m_clientEntityRegistry.getEntity(_clientId);
+		if (entity.isNull())
 		{
-			TRA_ERROR_LOG("Server: Cannot get TCP message to entity: %ull, client is not ready.", _entity.id());
+			TRA_ERROR_LOG("Server: Cannot get TCP message, client with ID %u does not exist.", _clientId);
 			return {};
 		}
 
-		return m_networkEngine->getTcpMessages(_entity, _messageType);
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot get TCP message to entity: %ull, client is not ready.", entity.id());
+			return {};
+		}
+
+		return m_networkEngine->getTcpMessages(entity, _messageType);
+	}
+
+	void Server::disconnectedClient()
+	{
+		m_disconnectedClientIds.clear();
+
+		for (auto& [entity] : m_networkEngine->getEcsWorld()->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<engine::tags::DisconnectedTag>{}))
+		{
+			ClientId clientId = m_clientEntityRegistry.getClientId(entity);
+			if (clientId != NULL_CLIENT_ID)
+			{
+				m_disconnectedClientIds.push_back(clientId);
+				m_clientEntityRegistry.removeClientId(clientId);
+			}
+		}
 	}
 
 	void Server::initializeNewClient()
@@ -199,6 +246,8 @@ namespace tra::netcode::server
 
 	void Server::setClientReady()
 	{
+		m_newClientIds.clear();
+
 		ecs::World* world = m_networkEngine->getEcsWorld();
 
 		auto& queryResult = world->queryEntities(
@@ -218,6 +267,10 @@ namespace tra::netcode::server
 			{
 				continue;
 			}
+
+			m_clientEntityRegistry.addClientId(m_nextClientId, entity);
+			m_newClientIds.push_back(m_nextClientId);
+			++m_nextClientId;
 
 			world->removeTag<tags::WaitingClientIsReadyTag>(entity);
 			world->addTag<tags::ClientIsReadyTag>(entity);
