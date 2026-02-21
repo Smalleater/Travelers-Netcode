@@ -30,7 +30,7 @@ namespace tra::networkComponent { \
         inline static uint32_t COMPONENT_TYPE_ID = NetworkComponent::hashTypeName(COMPONENT_NAME); \
         using COMPONENT_TYPE = NAME;
 
-#define TRA_NETCODE_DECLARE__NETWORK_COMPONENT_FIELD(TYPE, NAME) \
+#define TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(TYPE, NAME) \
     public: \
         TYPE NAME; \
     private: \

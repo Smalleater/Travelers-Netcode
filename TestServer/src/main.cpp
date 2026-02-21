@@ -17,11 +17,11 @@ using namespace tra::netcode::server;
 TRA_ECS_REGISTER_TAG(IsInitializedTag);
 
 DECLARE_MESSAGE_BEGIN(HelloWorld)
-FIELD(std::string, string)
+FIELD(std::vector<uint32_t>, m_vector)
 DECLARE_MESSAGE_END()
 
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_BEGIN(TestNetworkComponent)
-TRA_NETCODE_DECLARE__NETWORK_COMPONENT_FIELD(int, m_int)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(int, m_int)
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_END()
 
 class Client
@@ -47,11 +47,23 @@ public:
 		for (auto message : getMessages)
 		{
 			message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-			std::cout << "Received from client: " << m_clientId << ": " << helloMessage->string << std::endl;
+			//std::cout << "Received from client: " << m_clientId << ": " << helloMessage->string << std::endl;
+
+			std::cout << "Value: ";
+			for (const auto& element : helloMessage->m_vector)
+			{
+				std::cout << element << ", ";
+			}
+			std::cout << std::endl;
 		}
 
 		std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-		message->string = "Hello client: " + std::to_string(m_clientId) + ", from server!";
+		//message->string = "Hello client: " + std::to_string(m_clientId) + ", from server!";
+		message->m_vector.push_back(5);
+		message->m_vector.push_back(4);
+		message->m_vector.push_back(3);
+		message->m_vector.push_back(2);
+		message->m_vector.push_back(1);
 
 		Server::Get()->sendTcpMessage(m_clientId, message);
 	}
@@ -63,13 +75,13 @@ private:
 int main() {
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 5);
+	ec = Server::Get()->start(2025, 1);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl;
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-	message->string = "Hello World from server!";
+	//message->string = "Hello World from server!";
 
 	std::vector<Client> clients;
 

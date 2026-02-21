@@ -10,7 +10,7 @@ using namespace tra::netcode::engine;
 using namespace tra::netcode::client;
 
 DECLARE_MESSAGE_BEGIN(HelloWorld)
-FIELD(std::string, string)
+FIELD(std::vector<uint32_t>, m_vector)
 DECLARE_MESSAGE_END()
 
 int main() {
@@ -21,7 +21,12 @@ int main() {
 	if (ec != ErrorCode::Success) return -1;
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-	message->string = "Hello World from client!";
+	//message->string = "Hello World from client!";
+	message->m_vector.push_back(1);
+	message->m_vector.push_back(2);
+	message->m_vector.push_back(3);
+	message->m_vector.push_back(4);
+	message->m_vector.push_back(5);
 
 	while (Client::Get()->isConnected())
 	{
@@ -36,7 +41,13 @@ int main() {
 				for (auto message : getMessageResult)
 				{
 					message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-					std::cout << "Received from server: " << helloMessage->string << std::endl;
+					//std::cout << "Received from server: " << helloMessage->string << std::endl;
+					std::cout << "Value: ";
+					for (const auto& element : helloMessage->m_vector)
+					{
+						std::cout << element << ", ";
+					}
+					std::cout << std::endl;
 				}
 
 				Client::Get()->sendTcpMessage(message);
