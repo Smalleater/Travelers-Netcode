@@ -4,7 +4,7 @@
 #include "TRA/netcode/engine/message.hpp"
 #include "TRA/netcode/engine/networkId.hpp"
 
-namespace tra::netcode::engine::internal::messages
+namespace tra::netcode::engine
 {
 	DECLARE_MESSAGE_BEGIN(UpdateNetworkIdMessage)
 	FIELD(std::vector<NetworkId>, m_newNetworkIds)

@@ -12,6 +12,8 @@
 
 namespace tra::netcode::engine
 {
+	class NetworkEngine;
+
 	class NetworkIdManager
 	{
 	public:
@@ -21,9 +23,11 @@ namespace tra::netcode::engine
 		NetworkId AddEntity(ecs::Entity _entity);
 		void removeNetworkId(const NetworkId _networkId);
 
+		ecs::Entity getEntity(const NetworkId _networkId);
+
 		void clear();
 
-		void sendUpdateMessage();
+		void sendUpdateMessage(NetworkEngine* _networkEngine);
 
 	private:
 		std::unordered_map<NetworkId, ecs::Entity> m_networkIdEntityLookup;

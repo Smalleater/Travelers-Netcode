@@ -384,6 +384,7 @@ namespace tra::netcode::engine
 	{
 		if (canUpdateNetcode())
 		{
+			m_networkIdManager.sendUpdateMessage(this);
 			m_ecsWorld->updateEndSystems();
 
 			m_elapsedTime -= m_fixedDeltaTime;
