@@ -15,6 +15,7 @@
 
 #include "TRA/netcode/engine/message.hpp"
 #include "TRA/netcode/engine/networkComponent.hpp"
+#include "TRA/netcode/engine/networkIdManager.hpp"
 
 namespace tra::netcode::engine
 {
@@ -111,6 +112,8 @@ namespace tra::netcode::engine
 		//core::UdpSocket* m_udpSocket;
 
 		std::unique_ptr<ecs::World> m_ecsWorld;
+
+		NetworkIdManager m_networkIdManager;
 
 		ecs::Entity m_selfEntity;
 

@@ -263,6 +263,8 @@ namespace tra::netcode::engine
 		TRA_DEBUG_LOG("NetworkEngine: WSA cleaned up successfully.");
 #endif
 
+		m_networkIdManager.clear();
+
 		TRA_DEBUG_LOG("NetworkEngine: TCP listen socket stopped.");
 		return;
 	}
