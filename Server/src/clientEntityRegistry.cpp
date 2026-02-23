@@ -4,19 +4,26 @@ namespace tra::netcode::server
 {
 	void ClientEntityRegistry::addClientId(const ClientId _clientId, const ecs::Entity _entity)
 	{
-		m_clientEntityLookup.insert_or_assign(_clientId, _entity);
+		m_entities.push_back(_entity);
+		m_clientEntityLookup.insert_or_assign(_clientId, m_entities.size() - 1);
+
 		m_entityClientLookup.insert_or_assign(_entity, _clientId);
 	}
 
 	void ClientEntityRegistry::removeClientId(const ClientId _clientId)
 	{
-		ecs::Entity entity = getEntity(_clientId);
-		if (!entity.isNull())
-		{
-			m_entityClientLookup.erase(entity);
-		}
+		auto it = m_clientEntityLookup.find(_clientId);
+		if (it == m_clientEntityLookup.end()) return;
 
-		m_clientEntityLookup.erase(_clientId);
+		m_entityClientLookup.erase(m_entities[it->second]);
+
+		if (it->second != m_clientEntityLookup.size() - 1)
+		{
+			m_entities[it->second] = std::move(m_entities.back());
+			m_clientEntityLookup[m_entityClientLookup[m_entities[it->second]]] = it->second;
+		}
+		m_entities.pop_back();
+		m_clientEntityLookup.erase(it);
 	}
 
 	ClientId ClientEntityRegistry::getClientId(const ecs::Entity _entity)
@@ -38,6 +45,11 @@ namespace tra::netcode::server
 			return ecs::Entity();
 		}
 
-		return it->second;
+		return m_entities.at(it->second);
+	}
+
+	const std::vector<ecs::Entity> ClientEntityRegistry::getAllEntities() const
+	{
+		return m_entities;
 	}
 }

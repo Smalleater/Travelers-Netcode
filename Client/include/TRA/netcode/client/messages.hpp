@@ -13,4 +13,9 @@ DECLARE_MESSAGE_END()
 DECLARE_MESSAGE_BEGIN(ClientIsReadyMessage)
 DECLARE_MESSAGE_END()
 
+DECLARE_MESSAGE_BEGIN(SpawnDespawnMessage)
+FIELD(std::vector<Spawn>, m_spawns)
+FIELD(std::vector<Despawn>, m_despawns)
+DECLARE_MESSAGE_END()
+
 #endif

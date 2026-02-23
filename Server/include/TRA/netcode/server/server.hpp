@@ -12,6 +12,7 @@
 #include "TRA/netcode/engine/networkEngine.hpp"
 
 #include "TRA/netcode/server/clientEntityRegistry.hpp"
+#include "TRA/netcode/server/spawnDespawnManager.hpp"
 
 namespace tra::netcode::server
 {
@@ -72,12 +73,16 @@ namespace tra::netcode::server
 		std::vector<ClientId> m_newClientIds;
 		std::vector<ClientId> m_disconnectedClientIds;
 
+		SpawnDespawnManager m_spawnDespawnManager;
+
 		Server() = default;
 		~Server();
 
 		void disconnectedClient();
 		void initializeNewClient();
 		void setClientReady();
+
+		void sendNewSpawnDespawnMessage();
 	};
 }
 

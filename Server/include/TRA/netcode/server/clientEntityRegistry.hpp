@@ -23,9 +23,12 @@ namespace tra::netcode::server
 
 		ClientId getClientId(const ecs::Entity _entity);
 		ecs::Entity getEntity(const ClientId _clientId);
+		const std::vector<ecs::Entity> getAllEntities() const;
 
 	private:
-		std::unordered_map<ClientId, ecs::Entity> m_clientEntityLookup;
+		std::vector<ecs::Entity> m_entities;
+
+		std::unordered_map<ClientId, size_t> m_clientEntityLookup;
 		std::unordered_map<ecs::Entity, ClientId> m_entityClientLookup;
 	};
 }
