@@ -6,10 +6,18 @@
 #include <vector>
 #include <string>
 
+#include "TRA/netcode/engine/spawnDespawn.hpp"
+
 namespace tra::netcode::engine::field_serializer
 {
     TRA_API void serializeField(std::vector<uint8_t>& _data, const std::string& _field);
     TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, std::string& _field);
+
+    TRA_API void serializeField(std::vector<uint8_t>& _data, const Spawn& _field);
+    TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, Spawn& _field);
+
+    TRA_API void serializeField(std::vector<uint8_t>& _data, const Despawn& _field);
+    TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, Despawn& _field);
 
     template<typename T>
     void serializeField(std::vector<uint8_t>& _data, const T& _field)
