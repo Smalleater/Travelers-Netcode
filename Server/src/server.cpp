@@ -235,9 +235,15 @@ namespace tra::netcode::server
 
 		auto initializeClientMessage = std::make_shared<message::InitializeClientMessage>();
 		initializeClientMessage->m_tickRate = m_networkEngine->getTickRate();
+		
 
 		for (auto& [entity] : queryResult)
 		{
+			m_clientEntityRegistry.addClientId(m_nextClientId, entity);
+			initializeClientMessage->m_clientId = m_nextClientId;
+
+			++m_nextClientId;
+
 			m_networkEngine->sendTcpMessage(entity, initializeClientMessage);
 
 			world->addTag<tags::WaitingClientIsReadyTag>(entity);
@@ -268,9 +274,8 @@ namespace tra::netcode::server
 				continue;
 			}
 
-			m_clientEntityRegistry.addClientId(m_nextClientId, entity);
-			m_newClientIds.push_back(m_nextClientId);
-			++m_nextClientId;
+			ClientId clientId = m_clientEntityRegistry.getClientId(entity);
+			m_newClientIds.push_back(clientId);
 
 			world->removeTag<tags::WaitingClientIsReadyTag>(entity);
 			world->addTag<tags::ClientIsReadyTag>(entity);

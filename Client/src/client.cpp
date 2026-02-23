@@ -12,6 +12,12 @@ namespace tra::netcode::client
 {
 	Client* Client::m_singleton = nullptr;
 
+	Client::Client()
+		: m_clientId(0)
+	{
+
+	}
+
 	Client::~Client()
 	{
 		disconnect();
@@ -54,6 +60,8 @@ namespace tra::netcode::client
 			return ec;
 		}*/
 
+		ClientId m_clientId = 0;
+
 		TRA_INFO_LOG("Client: Successfully connected to server at %s:%d.", _address.c_str(), _port);
 		return ErrorCode::Success;
 	}
@@ -93,6 +101,11 @@ namespace tra::netcode::client
 	float Client::getFixedDeltaTime()
 	{
 		return m_networkEngine->getFixedDeltaTime();
+	}
+
+	ClientId Client::getClientId()
+	{
+		return m_clientId;
 	}
 
 	bool Client::canUpdateNetcode()
@@ -188,6 +201,8 @@ namespace tra::netcode::client
 
 			m_networkEngine->setTickRate(initializeClientMessage->m_tickRate);
 			m_networkEngine->resetElapsedTime();
+
+			m_clientId = initializeClientMessage->m_clientId;
 
 			m_networkEngine->getEcsWorld()->addTag<tags::ClientIsReadyTag>(selfEntity);
 

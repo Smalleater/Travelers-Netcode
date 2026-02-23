@@ -37,6 +37,8 @@ int main() {
 
 			if (Client::Get()->isReady())
 			{
+				std::cout << "ClientId: " << Client::Get()->getClientId() << std::endl;
+
 				auto getMessageResult = Client::Get()->getTcpMessages("HelloWorld");
 				for (auto message : getMessageResult)
 				{
