@@ -6,10 +6,10 @@
 
 #include "TRA/ecs/entity.hpp"
 
+#include "TRA/netcode/server/clientId.hpp"
+
 namespace tra::netcode::server
 {
-	using ClientId = uint32_t;
-
 	constexpr uint32_t NULL_CLIENT_ID = 0;
 
 	class ClientEntityRegistry

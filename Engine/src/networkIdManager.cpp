@@ -2,12 +2,10 @@
 
 #include "TRA/netcode/engine/networkEngine.hpp"
 
-#include "internal/networkIdMessage.hpp"
-
 namespace tra::netcode::engine
 {
 	NetworkIdManager::NetworkIdManager()
-		: m_nextNetworkId(0)
+		: m_nextNetworkId(1)
 	{
 
 	}
@@ -17,7 +15,7 @@ namespace tra::netcode::engine
 		NetworkId networkId = m_nextNetworkId;
 		++m_nextNetworkId;
 
-		m_networkIdEntityLookup.insert({ m_nextNetworkId, _entity });
+		m_networkIdEntityLookup.insert({ networkId, _entity });
 		
 		return networkId;
 	}

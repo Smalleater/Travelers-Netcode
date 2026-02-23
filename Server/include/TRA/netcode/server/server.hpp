@@ -47,6 +47,9 @@ namespace tra::netcode::server
 		TRA_API bool sendTcpMessage(const ClientId _clientId, std::shared_ptr<engine::Message> _message);
 		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(const ClientId _clientId, const std::string& _messageType);
 
+		TRA_API engine::NetworkId createNetworkEntity(ClientId _owner, uint16_t _tag);
+		TRA_API void destroyNetworkEntity(engine::NetworkId _networkid);
+
 		template<typename T>
 		void addNetworkComponent(ecs::Entity _entity, T&& _component)
 		{

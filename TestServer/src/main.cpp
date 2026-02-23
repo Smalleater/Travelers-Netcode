@@ -24,13 +24,19 @@ TRA_NETCODE_DECLARE_NETWORK_COMPONENT_BEGIN(TestNetworkComponent)
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(int, m_int)
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_END()
 
+enum class NetworkTag : uint16_t
+{
+	Player = 0
+};
+
 class Client
 {
 public:
 	Client(ClientId _clientId) 
 		: m_clientId(_clientId)
 	{
-
+		NetworkId networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
+		Server::Get()->destroyNetworkEntity(networkId);
 	}
 
 	~Client() = default;

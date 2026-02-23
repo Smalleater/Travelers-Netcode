@@ -200,6 +200,28 @@ namespace tra::netcode::server
 		return m_networkEngine->getTcpMessages(entity, _messageType);
 	}
 
+	engine::NetworkId Server::createNetworkEntity(ClientId _owner, uint16_t _tag)
+	{
+		if (!isRunning())
+		{
+			TRA_ERROR_LOG("Server: Cannot create network entity, server is not running.");
+			return 0;
+		}
+
+		return m_networkEngine->createNetworkEntity();
+	}
+
+	void Server::destroyNetworkEntity(engine::NetworkId _networkid)
+	{
+		if (!isRunning())
+		{
+			TRA_ERROR_LOG("Server: Cannot destroy network entity, server is not running.");
+			return;
+		}
+
+		m_networkEngine->destroyNetworkEntity(_networkid);
+	}
+
 	void Server::disconnectedClient()
 	{
 		m_disconnectedClientIds.clear();
