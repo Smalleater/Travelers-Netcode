@@ -15,6 +15,7 @@
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
 #include "internal/networkComponentIdBuffer.hpp"
+#include "internal/networkIdComponent.hpp"
 
 namespace tra::netcode::engine
 {
@@ -384,7 +385,6 @@ namespace tra::netcode::engine
 	{
 		if (canUpdateNetcode())
 		{
-			m_networkIdManager.sendUpdateMessage(this);
 			m_ecsWorld->updateEndSystems();
 
 			m_elapsedTime -= m_fixedDeltaTime;
@@ -432,6 +432,32 @@ namespace tra::netcode::engine
 	ecs::Entity NetworkEngine::getSelfEntity()
 	{
 		return m_selfEntity;
+	}
+
+	NetworkId NetworkEngine::createNetworkEntity()
+	{
+		ecs::Entity entity = m_ecsWorld->createEntity();
+		NetworkId networkId = m_networkIdManager.AddEntity(entity);
+
+		m_ecsWorld->addComponent(entity, internal::components::NetworkIdComponent{ networkId });
+		m_ecsWorld->addComponent(entity, internal::components::NetworkComponentIdBuffer{});
+
+		return networkId;
+	}
+
+	bool NetworkEngine::destroyNetworkEntity(NetworkId _networkId)
+	{
+		ecs::Entity entity = m_networkIdManager.getEntity(_networkId);
+		if (entity.isNull())
+		{
+			TRA_ERROR_LOG("NetworkEngine: Attempted to destroy a network entity with an invalid NetworkId: %I32u.", _networkId);
+			return false;
+		}
+
+		m_networkIdManager.removeNetworkId(_networkId);
+		m_ecsWorld->destroyEntity(entity);
+
+		return true;
 	}
 
 	bool NetworkEngine::entityHasNetworkComponentIdBuffer(ecs::Entity _entity)

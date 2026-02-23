@@ -54,6 +54,9 @@ namespace tra::netcode::engine
 		TRA_API ecs::World* getEcsWorld();
 		TRA_API ecs::Entity getSelfEntity();
 
+		TRA_API NetworkId createNetworkEntity();
+		TRA_API bool destroyNetworkEntity(NetworkId _networkId);
+
 		template<typename T>
 		void addNetworkComponent(ecs::Entity _entity, T&& _component)
 		{

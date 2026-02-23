@@ -45,20 +45,4 @@ namespace tra::netcode::engine
 		m_newNetworkIds.clear();
 		m_removedNetworkIds.clear();
 	}
-
-	void NetworkIdManager::sendUpdateMessage(NetworkEngine* _networkEngine)
-	{
-		if (m_newNetworkIds.size() >= 0 || m_removedNetworkIds.size() >= 0)
-		{
-			auto updateNetworkIdMessage = std::make_shared<tra::message::UpdateNetworkIdMessage>();
-
-			updateNetworkIdMessage->m_newNetworkIds = m_newNetworkIds;
-			updateNetworkIdMessage->m_removedNetworkIds = m_removedNetworkIds;
-
-			_networkEngine->sendTcpMessage(_networkEngine->getSelfEntity(), updateNetworkIdMessage);
-
-			m_newNetworkIds.clear();
-			m_removedNetworkIds.clear();
-		}
-	}
 }

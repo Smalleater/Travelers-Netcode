@@ -27,8 +27,6 @@ namespace tra::netcode::engine
 
 		void clear();
 
-		void sendUpdateMessage(NetworkEngine* _networkEngine);
-
 	private:
 		std::unordered_map<NetworkId, ecs::Entity> m_networkIdEntityLookup;
 
