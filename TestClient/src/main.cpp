@@ -37,22 +37,38 @@ int main() {
 
 			if (Client::Get()->isReady())
 			{
-				std::cout << "ClientId: " << Client::Get()->getClientId() << std::endl;
+				//std::cout << "ClientId: " << Client::Get()->getClientId() << std::endl;
 
-				auto getMessageResult = Client::Get()->getTcpMessages("HelloWorld");
-				for (auto message : getMessageResult)
+				//auto getMessageResult = Client::Get()->getTcpMessages("HelloWorld");
+				//for (auto message : getMessageResult)
+				//{
+				//	message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
+				//	//std::cout << "Received from server: " << helloMessage->string << std::endl;
+				//	std::cout << "Value: ";
+				//	for (const auto& element : helloMessage->m_vector)
+				//	{
+				//		std::cout << element << ", ";
+				//	}
+				//	std::cout << std::endl;
+				//}
+
+				//Client::Get()->sendTcpMessage(message);
+
+				Spawn spawn;
+				while (Client::Get()->tryGetSpawn(spawn))
 				{
-					message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-					//std::cout << "Received from server: " << helloMessage->string << std::endl;
-					std::cout << "Value: ";
-					for (const auto& element : helloMessage->m_vector)
-					{
-						std::cout << element << ", ";
-					}
-					std::cout << std::endl;
+					std::cout << "Spawn -"; 
+					std::cout << " NetworkId: " << spawn.m_networkId;
+					std::cout << " OwnerId: " << spawn.m_ownerId;
+					std::cout << " Tag: " << spawn.m_tag << std::endl;
 				}
 
-				Client::Get()->sendTcpMessage(message);
+				Despawn despawn;
+				while (Client::Get()->tryGetDespawn(despawn))
+				{
+					std::cout << "Despawn -";
+					std::cout << " NetworkId: " << despawn.m_networkId << std::endl;
+				}
 			}
 
 			Client::Get()->endUpdate();

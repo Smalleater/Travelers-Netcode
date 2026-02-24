@@ -75,6 +75,7 @@ namespace tra::netcode::server
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
 		m_networkEngine.reset();
+		m_spawnDespawnManager.clearAll();
 
 		TRA_INFO_LOG("Server: Stopped successfully.");
 		return ErrorCode::Success;
@@ -308,22 +309,24 @@ namespace tra::netcode::server
 
 			world->removeTag<tags::WaitingClientIsReadyTag>(entity);
 			world->addTag<tags::ClientIsReadyTag>(entity);
+
+			sendAllSpawnMessage(entity);
 		}
 	}
 
 	void Server::sendNewSpawnDespawnMessage()
 	{
-		const std::vector<Spawn>& m_spawns = m_spawnDespawnManager.getNewSpawns();
-		const std::vector<Despawn>& m_despawn = m_spawnDespawnManager.getNewDespawns();
+		const std::vector<Spawn>& spawns = m_spawnDespawnManager.getNewSpawns();
+		const std::vector<Despawn>& despawn = m_spawnDespawnManager.getNewDespawns();
 
-		if (m_spawns.size() == 0 && m_despawn.size() == 0)
+		if (spawns.size() == 0 && despawn.size() == 0)
 		{
 			return;
 		}
 
 		auto spawnDespawnMessage = std::make_shared<message::SpawnDespawnMessage>();
-		spawnDespawnMessage->m_spawns = m_spawns;
-		spawnDespawnMessage->m_despawns = m_despawn;
+		spawnDespawnMessage->m_spawns = spawns;
+		spawnDespawnMessage->m_despawns = despawn;
 
 		for (auto& entity : m_clientEntityRegistry.getAllEntities())
 		{
@@ -331,6 +334,18 @@ namespace tra::netcode::server
 			{
 				m_networkEngine->sendTcpMessage(entity, spawnDespawnMessage);
 			}
+		}
+	}
+
+	void Server::sendAllSpawnMessage(ecs::Entity _entity)
+	{
+		const std::vector<Spawn>& spawns = m_spawnDespawnManager.getSpawns();
+		if (spawns.size() > 0 && m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		{
+			auto spawnDespawnMessage = std::make_shared<message::SpawnDespawnMessage>();
+			spawnDespawnMessage->m_spawns = spawns;
+
+			m_networkEngine->sendTcpMessage(_entity, spawnDespawnMessage);
 		}
 	}
 }

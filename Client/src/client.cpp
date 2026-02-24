@@ -78,6 +78,7 @@ namespace tra::netcode::client
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
 		m_networkEngine.reset();
+		m_spawnDespawnManager.clear();
 
 		TRA_INFO_LOG("Client: Disconnected successfully.");
 		return ErrorCode::Success;
@@ -108,6 +109,16 @@ namespace tra::netcode::client
 		return m_clientId;
 	}
 
+	bool Client::tryGetSpawn(engine::Spawn& _spawn)
+	{
+		return m_spawnDespawnManager.tryGetSpawn(_spawn);
+	}
+
+	bool Client::tryGetDespawn(engine::Despawn& _despawn)
+	{
+		return m_spawnDespawnManager.tryGetDespawn(_despawn);
+	}
+
 	bool Client::canUpdateNetcode()
 	{
 		if (!isConnected())
@@ -132,6 +143,8 @@ namespace tra::netcode::client
 		}
 
 		m_networkEngine->beginUpdate();
+
+		receiveSpawnDespawnMessage();
 	}
 
 	void Client::endUpdate()
@@ -208,6 +221,32 @@ namespace tra::netcode::client
 
 			auto clientIsReadyMessage = std::make_shared<message::ClientIsReadyMessage>();
 			m_networkEngine->sendTcpMessage(selfEntity, clientIsReadyMessage);
+		}
+	}
+
+	void Client::receiveSpawnDespawnMessage()
+	{
+		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
+
+		auto& spawnDespawnMessages = m_networkEngine->getTcpMessages(selfEntity, "SpawnDespawnMessage");
+		if (spawnDespawnMessages.size() == 0)
+		{
+			return;
+		}
+
+		for (auto& spawnDespawnMessage : spawnDespawnMessages)
+		{
+			auto spawnDespawnMessagePtr = static_cast<message::SpawnDespawnMessage*>(spawnDespawnMessage.get());
+
+			if (!spawnDespawnMessagePtr->m_spawns.empty())
+			{
+				m_spawnDespawnManager.addSpawn(spawnDespawnMessagePtr->m_spawns);
+			}
+			
+			if (!spawnDespawnMessagePtr->m_despawns.empty())
+			{
+				m_spawnDespawnManager.addDespawn(spawnDespawnMessagePtr->m_despawns);
+			}
 		}
 	}
 }

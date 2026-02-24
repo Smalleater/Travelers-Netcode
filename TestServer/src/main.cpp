@@ -35,8 +35,7 @@ public:
 	Client(ClientId _clientId) 
 		: m_clientId(_clientId)
 	{
-		NetworkId networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
-		Server::Get()->destroyNetworkEntity(networkId);
+		m_networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
 	}
 
 	~Client() = default;
@@ -74,14 +73,24 @@ public:
 		Server::Get()->sendTcpMessage(m_clientId, message);
 	}
 
+	void destroyNetworkEntity()
+	{
+		if (m_networkId != 0)
+		{
+			Server::Get()->destroyNetworkEntity(m_networkId);
+		}
+	}
+
 private:
 	ClientId m_clientId = NULL_CLIENT_ID;
+	NetworkId m_networkId = 0;
 };
 
-int main() {
+int main() 
+{
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 1);
+	ec = Server::Get()->start(2025, 30);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl;
@@ -108,6 +117,7 @@ int main() {
 
 				if (it != clients.end())
 				{
+					it->destroyNetworkEntity();
 					clients.erase(it);
 				}
 			}
@@ -128,7 +138,7 @@ int main() {
 
 			for (auto& client : clients)
 			{
-				client.update();
+				//client.update();
 			}
 
 			Server::Get()->endUpdate();

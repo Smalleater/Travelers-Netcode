@@ -21,25 +21,25 @@ namespace tra::netcode::engine::field_serializer
 
     void serializeField(std::vector<uint8_t>& _data, const Spawn& _field)
     {
-        serializeField(_data, _field._networkId);
-        serializeField(_data, _field._ownerId);
-        serializeField(_data, _field._tag);
+        serializeField(_data, _field.m_networkId);
+        serializeField(_data, _field.m_ownerId);
+        serializeField(_data, _field.m_tag);
     }
 
     void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, Spawn& _field)
     {
-        deserializeField(_data, _offset, _field._networkId);
-        deserializeField(_data, _offset, _field._ownerId);
-        deserializeField(_data, _offset, _field._tag);
+        deserializeField(_data, _offset, _field.m_networkId);
+        deserializeField(_data, _offset, _field.m_ownerId);
+        deserializeField(_data, _offset, _field.m_tag);
     }
 
     void serializeField(std::vector<uint8_t>& _data, const Despawn& _field)
     {
-        serializeField(_data, _field._networkId);
+        serializeField(_data, _field.m_networkId);
     }
 
     void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, Despawn& _field)
     {
-        deserializeField(_data, _offset, _field._networkId);
+        deserializeField(_data, _offset, _field.m_networkId);
     }
 }

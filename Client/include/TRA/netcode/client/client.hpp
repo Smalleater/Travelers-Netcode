@@ -11,6 +11,7 @@
 #include "TRA/netcode/engine/networkEngine.hpp"
 
 #include "TRA/netcode/client/clientId.hpp"
+#include "TRA/netcode/client/spawnDespawnManager.hpp"
 
 namespace tra::netcode::client
 {
@@ -34,6 +35,9 @@ namespace tra::netcode::client
 		TRA_API float getFixedDeltaTime();
 		TRA_API ClientId getClientId();
 
+		TRA_API bool tryGetSpawn(engine::Spawn& _spawn);
+		TRA_API bool tryGetDespawn(engine::Despawn& _despawn);
+
 		TRA_API bool canUpdateNetcode();
 
 		TRA_API void updateElapsedTime();
@@ -53,10 +57,13 @@ namespace tra::netcode::client
 
 		ClientId m_clientId;
 
+		SpawnDespawnManager m_spawnDespawnManager;
+
 		Client();
 		~Client();
 
 		void receiveInitializeClient();
+		void receiveSpawnDespawnMessage();
 	};
 }
 

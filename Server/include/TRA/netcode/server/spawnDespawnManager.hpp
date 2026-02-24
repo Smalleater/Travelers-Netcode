@@ -25,6 +25,7 @@ namespace tra::netcode::server
 		void addDespawn(engine::NetworkId _networkId);
 
 		void clearNewSpawnDespawn();
+		void clearAll();
 
 	private:
 		std::vector<engine::Spawn> m_spawns;

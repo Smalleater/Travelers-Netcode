@@ -83,6 +83,7 @@ namespace tra::netcode::server
 		void setClientReady();
 
 		void sendNewSpawnDespawnMessage();
+		void sendAllSpawnMessage(ecs::Entity _entity);
 	};
 }
 

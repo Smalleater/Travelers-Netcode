@@ -21,9 +21,9 @@ namespace tra::netcode::server
 	{
 		engine::Spawn spawn;
 
-		spawn._networkId = _networkId;
-		spawn._ownerId = _owner;
-		spawn._tag = _tag;
+		spawn.m_networkId = _networkId;
+		spawn.m_ownerId = _owner;
+		spawn.m_tag = _tag;
 
 		m_newSpawns.push_back(spawn);
 		m_spawns.push_back(spawn);
@@ -41,14 +41,14 @@ namespace tra::netcode::server
 		if (it->second != m_spawns.size() - 1)
 		{
 			m_spawns[it->second] = std::move(m_spawns.back());
-			m_spawnLookup[m_spawns[it->second]._networkId] = it->second;
+			m_spawnLookup[m_spawns[it->second].m_networkId] = it->second;
 		}
 
 		m_spawns.pop_back();
 		m_spawnLookup.erase(it);
 
 		engine::Despawn despawn;
-		despawn._networkId = _networkId;
+		despawn.m_networkId = _networkId;
 
 		m_newDespawn.push_back(despawn);
 	}
@@ -57,5 +57,13 @@ namespace tra::netcode::server
 	{
 		m_newSpawns.clear();
 		m_newDespawn.clear();
+	}
+
+	void SpawnDespawnManager::clearAll()
+	{
+		clearNewSpawnDespawn();
+
+		m_spawns.clear();
+		m_spawnLookup.clear();
 	}
 }
