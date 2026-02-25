@@ -23,7 +23,7 @@ namespace tra::netcode::engine
 		NetworkId AddEntity(ecs::Entity _entity);
 		void removeNetworkId(const NetworkId _networkId);
 
-		ecs::Entity getEntity(const NetworkId _networkId);
+		TRA_API ecs::Entity getEntity(const NetworkId _networkId);
 
 		void clear();
 

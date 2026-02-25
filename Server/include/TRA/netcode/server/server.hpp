@@ -52,15 +52,15 @@ namespace tra::netcode::server
 		TRA_API void destroyNetworkEntity(engine::NetworkId _networkid);
 
 		template<typename T>
-		void addNetworkComponent(ecs::Entity _entity, T&& _component)
+		void addNetworkComponent(engine::NetworkId _networkid, T&& _component)
 		{
-			m_networkEngine->addNetworkComponent(_entity, std::forward<T>(_component));
+			m_networkEngine->addNetworkComponent(_networkid, std::forward<T>(_component));
 		}
 
 		template<typename T>
-		void removeNetworkComponent(ecs::Entity _entity)
+		void removeNetworkComponent(engine::NetworkId _networkid)
 		{
-			m_networkEngine->removeNetworkComponent<T>(_entity);
+			m_networkEngine->removeNetworkComponent<T>(_networkid);
 		}
 
 	private:

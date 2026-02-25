@@ -58,7 +58,7 @@ namespace tra::netcode::engine
 		TRA_API bool destroyNetworkEntity(NetworkId _networkId);
 
 		template<typename T>
-		void addNetworkComponent(ecs::Entity _entity, T&& _component)
+		void addNetworkComponent(NetworkId _networkId, T&& _component)
 		{
 			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
 			{
@@ -66,26 +66,33 @@ namespace tra::netcode::engine
 				return;
 			}
 
-			if (!entityHasNetworkComponentIdBuffer(_entity))
+			ecs::Entity entity = m_networkIdManager.getEntity(_networkId);
+			if (entity.isNull())
 			{
-				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", _entity.id());
+				TRA_ERROR_LOG("NetworkEngine: Attempted to add a component to an invalid NetworkId: %I32u.", _networkId);
 				return;
 			}
 
-			if (m_ecsWorld->hasComponent<T>(_entity))
+			if (!entityHasNetworkComponentIdBuffer(entity))
 			{
-				TRA_WARNING_LOG("NetworkEngine: Entity %I32u already has a component of type %s.", _entity.id(), typeid(T).name());
+				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", entity.id());
+				return;
+			}
+
+			if (m_ecsWorld->hasComponent<T>(entity))
+			{
+				TRA_WARNING_LOG("NetworkEngine: Entity %I32u already has a component of type %s.", entity.id(), typeid(T).name());
 				return;
 			}
 
 			const size_t componentId = ecs::ComponentLibrary::getComponent<T>().m_id;
-			addIdToNetworkComponentIdBuffer(_entity, componentId);
+			addIdToNetworkComponentIdBuffer(entity, componentId);
 
-			m_ecsWorld->addComponent(_entity, std::forward<T>(_component));
+			m_ecsWorld->addComponent(entity, std::forward<T>(_component));
 		}
 
 		template<typename T>
-		void removeNetworkComponent(ecs::Entity _entity)
+		void removeNetworkComponent(NetworkId _networkId)
 		{
 			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
 			{
@@ -93,22 +100,29 @@ namespace tra::netcode::engine
 				return;
 			}
 
-			if (!entityHasNetworkComponentIdBuffer(_entity))
+			ecs::Entity entity = m_networkIdManager.getEntity(_networkId);
+			if (entity.isNull())
 			{
-				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", _entity.id());
+				TRA_ERROR_LOG("NetworkEngine: Attempted to remove a component to an invalid NetworkId: %I32u.", _networkId);
 				return;
 			}
 
-			if (!m_ecsWorld->hasComponent<T>(_entity))
+			if (!entityHasNetworkComponentIdBuffer(entity))
 			{
-				TRA_WARNING_LOG("NetworkEngine: Entity %I32u does not have a component of type %s.", _entity.id(), typeid(T).name());
+				TRA_ERROR_LOG("NetworkEngine: Failed to get NetworkComponentIdBuffer for entity %I32u.", entity.id());
+				return;
+			}
+
+			if (!m_ecsWorld->hasComponent<T>(entity))
+			{
+				TRA_WARNING_LOG("NetworkEngine: Entity %I32u does not have a component of type %s.", entity.id(), typeid(T).name());
 				return;
 			}
 
 			const size_t componentId = ecs::ComponentLibrary::getComponent<T>().m_id;
-			removeIdToNetworkComponentIdBuffer(_entity, componentId);
+			removeIdToNetworkComponentIdBuffer(entity, componentId);
 
-			m_ecsWorld->removeComponent<T>(_entity);
+			m_ecsWorld->removeComponent<T>(entity);
 		}
 
 	private:

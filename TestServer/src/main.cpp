@@ -36,6 +36,10 @@ public:
 		: m_clientId(_clientId)
 	{
 		m_networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
+
+		networkComponent::TestNetworkComponent testNetworkComponent;
+		testNetworkComponent.m_int = 32;
+		Server::Get()->addNetworkComponent(m_networkId, std::move(testNetworkComponent));
 	}
 
 	~Client() = default;
@@ -77,6 +81,7 @@ public:
 	{
 		if (m_networkId != 0)
 		{
+			Server::Get()->removeNetworkComponent<networkComponent::TestNetworkComponent>(m_networkId);
 			Server::Get()->destroyNetworkEntity(m_networkId);
 		}
 	}
