@@ -11,7 +11,7 @@ namespace tra::netcode::engine::internal
 		using Creator = std::function<std::shared_ptr<NetworkComponent>(const std::vector<uint8_t>&)>;
 
 		static void registerNetworkComponent(const uint32_t _id, Creator _creator);
-		static std::vector<uint8_t> serialize(const NetworkComponent& _message);
+		static std::vector<uint8_t> serialize(const NetworkComponent& _component);
 		static std::shared_ptr<NetworkComponent> deserialize(const std::vector<uint8_t>& _payload);
 
 	private:

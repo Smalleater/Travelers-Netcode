@@ -21,7 +21,8 @@ FIELD(std::vector<uint32_t>, m_vector)
 DECLARE_MESSAGE_END()
 
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_BEGIN(TestNetworkComponent)
-TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(int, m_int)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(float, m_x)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(float, m_y)
 TRA_NETCODE_DECLARE_NETWORK_COMPONENT_END()
 
 enum class NetworkTag : uint16_t
@@ -38,7 +39,8 @@ public:
 		m_networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
 
 		networkComponent::TestNetworkComponent testNetworkComponent;
-		testNetworkComponent.m_int = 32;
+		testNetworkComponent.m_x = 32;
+		testNetworkComponent.m_y = 64;
 		Server::Get()->addNetworkComponent(m_networkId, std::move(testNetworkComponent));
 	}
 
@@ -95,7 +97,7 @@ int main()
 {
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 30);
+	ec = Server::Get()->start(2025, 1);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl;
