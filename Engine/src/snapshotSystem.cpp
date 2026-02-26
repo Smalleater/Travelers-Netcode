@@ -10,6 +10,7 @@
 #include "internal/networkComponentFactory.hpp"
 #include "internal/messageComponent.hpp"
 #include "internal/socketComponent.hpp"
+#include "internal/snapshotComponent.hpp"
 
 namespace tra::netcode::engine::internal
 {

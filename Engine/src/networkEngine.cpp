@@ -16,6 +16,7 @@
 #include "internal/messageComponent.hpp"
 #include "internal/networkComponentIdBuffer.hpp"
 #include "internal/networkIdComponent.hpp"
+#include "internal/snapshotComponent.hpp"
 
 namespace tra::netcode::engine
 {
@@ -168,6 +169,10 @@ namespace tra::netcode::engine
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::ReceiveTcpMessageComponent{});
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::NetworkComponentIdBuffer{});
 
+		internal::components::SnapshotComponent snapshotComponent;
+		snapshotComponent.m_lastSnapshotId = 0;
+		m_ecsWorld->addComponent(m_selfEntity, std::move(snapshotComponent));
+
 		m_ecsWorld->addTag<tags::ConnectedTag>(m_selfEntity);
 
 		TRA_DEBUG_LOG("NetworkEngine: TCP connect socket connected to %s:%d.", _address.c_str(), _port);
@@ -300,6 +305,11 @@ namespace tra::netcode::engine
 		if (m_ecsWorld->hasComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity))
 		{
 			m_ecsWorld->removeComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity);
+		}
+
+		if (m_ecsWorld->hasComponent<internal::components::SnapshotComponent>(m_selfEntity))
+		{
+			m_ecsWorld->removeComponent<internal::components::SnapshotComponent>(m_selfEntity);
 		}
 
 #ifdef _WIN32
