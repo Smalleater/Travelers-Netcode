@@ -53,6 +53,9 @@ namespace tra::netcode::server
 			return ec;
 		}*/
 
+		m_nextClientId = 1;
+		m_clientEntityRegistry = ClientEntityRegistry();
+
 		m_networkEngine->setTickRate(_tickRate);
 		m_networkEngine->resetElapsedTime();
 
@@ -72,6 +75,7 @@ namespace tra::netcode::server
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
 		m_networkEngine.reset();
+		m_spawnDespawnManager.clearAll();
 
 		TRA_INFO_LOG("Server: Stopped successfully.");
 		return ErrorCode::Success;
@@ -90,6 +94,16 @@ namespace tra::netcode::server
 	float Server::getFixedDeltaTime()
 	{
 		return m_networkEngine->getFixedDeltaTime();
+	}
+
+	std::vector<ClientId> Server::getNewClientIds()
+	{
+		return m_newClientIds;
+	}
+
+	std::vector<ClientId> Server::getDisconnectedClientIds()
+	{
+		return m_disconnectedClientIds;
 	}
 
 	bool Server::canUpdateNetcode()
@@ -126,8 +140,13 @@ namespace tra::netcode::server
 			return;
 		}
 
+		disconnectedClient();
+
 		setClientReady();
 		initializeNewClient();
+
+		sendNewSpawnDespawnMessage();
+		m_spawnDespawnManager.clearNewSpawnDespawn();
 
 		m_networkEngine->endUpdate();
 	}
@@ -137,24 +156,31 @@ namespace tra::netcode::server
 		return m_networkEngine->getEcsWorld();
 	}
 
-	ErrorCode Server::sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message)
+	bool Server::sendTcpMessage(const ClientId _clientId, std::shared_ptr<engine::Message> _message)
 	{
 		if (!isRunning())
 		{
 			TRA_ERROR_LOG("Server: Cannot send TCP message, server is not running.");
-			return ErrorCode::ServerNotRunning;
+			return false;
 		}
 
-		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		const ecs::Entity entity = m_clientEntityRegistry.getEntity(_clientId);
+		if (entity.isNull())
 		{
-			TRA_ERROR_LOG("Server: Cannot send TCP message to entity: %ull, client is not ready.", _entity.id());
-			return ErrorCode::ClientIsNotReady;
+			TRA_ERROR_LOG("Server: Cannot send TCP message, client with ID %u does not exist.", _clientId);
+			return false;
 		}
 
-		return m_networkEngine->sendTcpMessage(_entity, _message);
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot send TCP message to entity: %ull, client is not ready.", entity.id());
+			return false;
+		}
+
+		return m_networkEngine->sendTcpMessage(entity, _message) == ErrorCode::Success ? true : false;
 	}
 
-	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(ecs::Entity _entity, const std::string& _messageType)
+	std::vector<std::shared_ptr<engine::Message>> Server::getTcpMessages(const ClientId _clientId, const std::string& _messageType)
 	{
 		if (!isRunning())
 		{
@@ -162,13 +188,64 @@ namespace tra::netcode::server
 			return {};
 		}
 
-		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		const ecs::Entity entity = m_clientEntityRegistry.getEntity(_clientId);
+		if (entity.isNull())
 		{
-			TRA_ERROR_LOG("Server: Cannot get TCP message to entity: %ull, client is not ready.", _entity.id());
+			TRA_ERROR_LOG("Server: Cannot get TCP message, client with ID %u does not exist.", _clientId);
 			return {};
 		}
 
-		return m_networkEngine->getTcpMessages(_entity, _messageType);
+		if (!m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(entity))
+		{
+			TRA_ERROR_LOG("Server: Cannot get TCP message to entity: %ull, client is not ready.", entity.id());
+			return {};
+		}
+
+		return m_networkEngine->getTcpMessages(entity, _messageType);
+	}
+
+	engine::NetworkId Server::createNetworkEntity(ClientId _owner, uint16_t _tag)
+	{
+		if (!isRunning())
+		{
+			TRA_ERROR_LOG("Server: Cannot create network entity, server is not running.");
+			return 0;
+		}
+
+		NetworkId networkId = m_networkEngine->createNetworkEntity();
+		m_spawnDespawnManager.addSpawnMessage(networkId, _owner, _tag);
+
+		return networkId;
+	}
+
+	void Server::destroyNetworkEntity(engine::NetworkId _networkid)
+	{
+		if (!isRunning())
+		{
+			TRA_ERROR_LOG("Server: Cannot destroy network entity, server is not running.");
+			return;
+		}
+
+		m_spawnDespawnManager.addDespawn(_networkid);
+		m_networkEngine->destroyNetworkEntity(_networkid);
+	}
+
+	void Server::disconnectedClient()
+	{
+		m_disconnectedClientIds.clear();
+
+		for (auto& [entity] : m_networkEngine->getEcsWorld()->queryEntities(
+			ecs::WithComponent<>{},
+			ecs::WithoutComponent<>{},
+			ecs::WithTag<engine::tags::DisconnectedTag>{}))
+		{
+			ClientId clientId = m_clientEntityRegistry.getClientId(entity);
+			if (clientId != NULL_CLIENT_ID)
+			{
+				m_disconnectedClientIds.push_back(clientId);
+				m_clientEntityRegistry.removeClientId(clientId);
+			}
+		}
 	}
 
 	void Server::initializeNewClient()
@@ -188,9 +265,15 @@ namespace tra::netcode::server
 
 		auto initializeClientMessage = std::make_shared<message::InitializeClientMessage>();
 		initializeClientMessage->m_tickRate = m_networkEngine->getTickRate();
+		
 
 		for (auto& [entity] : queryResult)
 		{
+			m_clientEntityRegistry.addClientId(m_nextClientId, entity);
+			initializeClientMessage->m_clientId = m_nextClientId;
+
+			++m_nextClientId;
+
 			m_networkEngine->sendTcpMessage(entity, initializeClientMessage);
 
 			world->addTag<tags::WaitingClientIsReadyTag>(entity);
@@ -199,6 +282,8 @@ namespace tra::netcode::server
 
 	void Server::setClientReady()
 	{
+		m_newClientIds.clear();
+
 		ecs::World* world = m_networkEngine->getEcsWorld();
 
 		auto& queryResult = world->queryEntities(
@@ -219,8 +304,48 @@ namespace tra::netcode::server
 				continue;
 			}
 
+			ClientId clientId = m_clientEntityRegistry.getClientId(entity);
+			m_newClientIds.push_back(clientId);
+
 			world->removeTag<tags::WaitingClientIsReadyTag>(entity);
 			world->addTag<tags::ClientIsReadyTag>(entity);
+
+			sendAllSpawnMessage(entity);
+		}
+	}
+
+	void Server::sendNewSpawnDespawnMessage()
+	{
+		const std::vector<Spawn>& spawns = m_spawnDespawnManager.getNewSpawns();
+		const std::vector<Despawn>& despawn = m_spawnDespawnManager.getNewDespawns();
+
+		if (spawns.size() == 0 && despawn.size() == 0)
+		{
+			return;
+		}
+
+		auto spawnDespawnMessage = std::make_shared<message::SpawnDespawnMessage>();
+		spawnDespawnMessage->m_spawns = spawns;
+		spawnDespawnMessage->m_despawns = despawn;
+
+		for (auto& entity : m_clientEntityRegistry.getAllEntities())
+		{
+			if (m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(entity))
+			{
+				m_networkEngine->sendTcpMessage(entity, spawnDespawnMessage);
+			}
+		}
+	}
+
+	void Server::sendAllSpawnMessage(ecs::Entity _entity)
+	{
+		const std::vector<Spawn>& spawns = m_spawnDespawnManager.getSpawns();
+		if (spawns.size() > 0 && m_networkEngine->getEcsWorld()->hasTag<tags::ClientIsReadyTag>(_entity))
+		{
+			auto spawnDespawnMessage = std::make_shared<message::SpawnDespawnMessage>();
+			spawnDespawnMessage->m_spawns = spawns;
+
+			m_networkEngine->sendTcpMessage(_entity, spawnDespawnMessage);
 		}
 	}
 }

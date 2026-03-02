@@ -7,27 +7,105 @@
 #include "TRA/netcode/server/tags.hpp"
 
 #include "TRA/netcode/engine/message.hpp"
+#include "TRA/netcode/engine/networkComponent.hpp"
 #include "TRA/netcode/engine/tags.hpp"
 
 using namespace tra;
-using namespace tra::netcode;
 using namespace tra::netcode::engine;
 using namespace tra::netcode::server;
 
+TRA_ECS_REGISTER_TAG(IsInitializedTag);
+
 DECLARE_MESSAGE_BEGIN(HelloWorld)
-FIELD(std::string, string)
+FIELD(std::vector<uint32_t>, m_vector)
 DECLARE_MESSAGE_END()
 
-int main() {
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_BEGIN(TestNetworkComponent)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(float, m_x)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_FIELD(float, m_y)
+TRA_NETCODE_DECLARE_NETWORK_COMPONENT_END()
+
+enum class NetworkTag : uint16_t
+{
+	Player = 0
+};
+
+class Client
+{
+public:
+	Client(ClientId _clientId) 
+		: m_clientId(_clientId)
+	{
+		m_networkId = Server::Get()->createNetworkEntity(_clientId, static_cast<uint16_t>(NetworkTag::Player));
+
+		networkComponent::TestNetworkComponent testNetworkComponent;
+		testNetworkComponent.m_x = 32;
+		testNetworkComponent.m_y = 64;
+		Server::Get()->addNetworkComponent(m_networkId, std::move(testNetworkComponent));
+	}
+
+	~Client() = default;
+
+	ClientId getClientId() const
+	{
+		return m_clientId;
+	}
+
+	void update()
+	{
+		auto getMessages = Server::Get()->getTcpMessages(m_clientId, "HelloWorld");
+
+		for (auto message : getMessages)
+		{
+			message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
+			//std::cout << "Received from client: " << m_clientId << ": " << helloMessage->string << std::endl;
+
+			std::cout << "Value: ";
+			for (const auto& element : helloMessage->m_vector)
+			{
+				std::cout << element << ", ";
+			}
+			std::cout << std::endl;
+		}
+
+		std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
+		//message->string = "Hello client: " + std::to_string(m_clientId) + ", from server!";
+		message->m_vector.push_back(5);
+		message->m_vector.push_back(4);
+		message->m_vector.push_back(3);
+		message->m_vector.push_back(2);
+		message->m_vector.push_back(1);
+
+		Server::Get()->sendTcpMessage(m_clientId, message);
+	}
+
+	void destroyNetworkEntity()
+	{
+		if (m_networkId != 0)
+		{
+			Server::Get()->removeNetworkComponent<networkComponent::TestNetworkComponent>(m_networkId);
+			Server::Get()->destroyNetworkEntity(m_networkId);
+		}
+	}
+
+private:
+	ClientId m_clientId = NULL_CLIENT_ID;
+	NetworkId m_networkId = 0;
+};
+
+int main() 
+{
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 60);
+	ec = Server::Get()->start(2025, 5);
 	if (ec != ErrorCode::Success) return -1;
 
-	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl; 
+	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl;
 
 	std::shared_ptr<message::HelloWorld> message = std::make_shared<message::HelloWorld>();
-	message->string = "Hello World from server!";
+	//message->string = "Hello World from server!";
+
+	std::vector<Client> clients;
 
 	while (Server::Get()->isRunning())
 	{
@@ -36,20 +114,38 @@ int main() {
 		{
 			Server::Get()->beginUpdate();
 
-			for (auto& [entity] : Server::Get()->getEcsWorld()->queryEntities(
-				ecs::WithComponent<>{},
-				ecs::WithoutComponent<>{},
-				ecs::WithTag<engine::tags::ConnectedTag, server::tags::ClientIsReadyTag>{},
-				ecs::WithoutTag<engine::tags::SelfTag>{}))
+			auto& disconnectedClientsid = Server::Get()->getDisconnectedClientIds();
+			for (auto& clientId : disconnectedClientsid)
 			{
-				auto getMessageResult = Server::Get()->getTcpMessages(entity, "HelloWorld");
-				for (auto message : getMessageResult)
-				{
-					message::HelloWorld* helloMessage = static_cast<message::HelloWorld*>(message.get());
-					std::cout << "Received from client " << entity.id() << ": " << helloMessage->string << std::endl;
-				}
+				auto& it = std::find_if(clients.begin(), clients.end(),
+					[clientId](const Client& _client) {
+						return _client.getClientId() == clientId;
+					});
 
-				Server::Get()->sendTcpMessage(entity, message);
+				if (it != clients.end())
+				{
+					it->destroyNetworkEntity();
+					clients.erase(it);
+				}
+			}
+
+			auto& newClientsId = Server::Get()->getNewClientIds();
+			for (auto& clientId : newClientsId)
+			{
+				auto& it = std::find_if(clients.begin(), clients.end(),
+					[clientId](const Client& _client) {
+						return _client.getClientId() == clientId;
+					});
+
+				if (it == clients.end())
+				{
+					clients.emplace_back(clientId);
+				}
+			}
+
+			for (auto& client : clients)
+			{
+				//client.update();
 			}
 
 			Server::Get()->endUpdate();

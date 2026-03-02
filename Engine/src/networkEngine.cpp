@@ -14,6 +14,9 @@
 #include "internal/networkSystemRegistrar.hpp"
 #include "internal/socketComponent.hpp"
 #include "internal/messageComponent.hpp"
+#include "internal/networkComponentIdBuffer.hpp"
+#include "internal/networkIdComponent.hpp"
+#include "internal/snapshotComponent.hpp"
 
 namespace tra::netcode::engine
 {
@@ -164,6 +167,11 @@ namespace tra::netcode::engine
 
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::SendTcpMessageComponent{});
 		m_ecsWorld->addComponent(m_selfEntity, internal::components::ReceiveTcpMessageComponent{});
+		m_ecsWorld->addComponent(m_selfEntity, internal::components::NetworkComponentIdBuffer{});
+
+		internal::components::SnapshotComponent snapshotComponent;
+		snapshotComponent.m_lastSnapshotId = 0;
+		m_ecsWorld->addComponent(m_selfEntity, std::move(snapshotComponent));
 
 		m_ecsWorld->addTag<tags::ConnectedTag>(m_selfEntity);
 
@@ -261,6 +269,8 @@ namespace tra::netcode::engine
 		TRA_DEBUG_LOG("NetworkEngine: WSA cleaned up successfully.");
 #endif
 
+		m_networkIdManager.clear();
+
 		TRA_DEBUG_LOG("NetworkEngine: TCP listen socket stopped.");
 		return;
 	}
@@ -290,6 +300,16 @@ namespace tra::netcode::engine
 		if (m_ecsWorld->hasComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity))
 		{
 			m_ecsWorld->removeComponent<internal::components::ReceiveTcpMessageComponent>(m_selfEntity);
+		}
+
+		if (m_ecsWorld->hasComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity))
+		{
+			m_ecsWorld->removeComponent<internal::components::NetworkComponentIdBuffer>(m_selfEntity);
+		}
+
+		if (m_ecsWorld->hasComponent<internal::components::SnapshotComponent>(m_selfEntity))
+		{
+			m_ecsWorld->removeComponent<internal::components::SnapshotComponent>(m_selfEntity);
 		}
 
 #ifdef _WIN32
@@ -414,6 +434,62 @@ namespace tra::netcode::engine
 		return it->second;
 	}
 
+	std::shared_ptr<NetworkComponent> NetworkEngine::getNetworkComponentFromSnapshot(
+		const NetworkId _networkId, const std::string& _componentType, bool _lastSnapshot)
+	{
+		if (!m_ecsWorld->hasComponent<internal::components::SnapshotComponent>(m_selfEntity))
+		{
+			TRA_ERROR_LOG("NetworkEngine: Failed to get SnapshotComponent for self entity %I32u.", m_selfEntity.id());
+			return nullptr;
+		}
+
+		auto snapshotComponentPtr = m_ecsWorld->getComponent<internal::components::SnapshotComponent>(m_selfEntity);
+
+
+		size_t snapshotId;
+		if (_lastSnapshot)
+		{
+			snapshotId = snapshotComponentPtr->m_lastSnapshotId;
+		}
+		else
+		{
+			snapshotId = snapshotComponentPtr->m_lastSnapshotId == 0 ? 1 : 0;
+		}
+
+		if (snapshotId == 0)
+		{
+			auto it = snapshotComponentPtr->m_firstSnapshot.find(_networkId);
+			if (it == snapshotComponentPtr->m_firstSnapshot.end())
+			{
+				return nullptr;
+			}
+
+			auto componentIt = it->second.find(_componentType);
+			if (componentIt == it->second.end())
+			{
+				return nullptr;
+			}
+
+			return componentIt->second;
+		}
+		else
+		{
+			auto it = snapshotComponentPtr->m_secondSnapshot.find(_networkId);
+			if (it == snapshotComponentPtr->m_secondSnapshot.end())
+			{
+				return nullptr;
+			}
+
+			auto componentIt = it->second.find(_componentType);
+			if (componentIt == it->second.end())
+			{
+				return nullptr;
+			}
+
+			return componentIt->second;
+		}
+	}
+
 	ecs::World* NetworkEngine::getEcsWorld()
 	{
 		return m_ecsWorld.get();
@@ -422,5 +498,81 @@ namespace tra::netcode::engine
 	ecs::Entity NetworkEngine::getSelfEntity()
 	{
 		return m_selfEntity;
+	}
+
+	NetworkId NetworkEngine::createNetworkEntity()
+	{
+		ecs::Entity entity = m_ecsWorld->createEntity();
+		NetworkId networkId = m_networkIdManager.AddEntity(entity);
+
+		m_ecsWorld->addComponent(entity, internal::components::NetworkIdComponent{ networkId });
+		m_ecsWorld->addComponent(entity, internal::components::NetworkComponentIdBuffer{});
+
+		return networkId;
+	}
+
+	bool NetworkEngine::destroyNetworkEntity(NetworkId _networkId)
+	{
+		ecs::Entity entity = m_networkIdManager.getEntity(_networkId);
+		if (entity.isNull())
+		{
+			TRA_ERROR_LOG("NetworkEngine: Attempted to destroy a network entity with an invalid NetworkId: %I32u.", _networkId);
+			return false;
+		}
+
+		m_networkIdManager.removeNetworkId(_networkId);
+		m_ecsWorld->destroyEntity(entity);
+
+		return true;
+	}
+
+	bool NetworkEngine::entityHasNetworkComponentIdBuffer(ecs::Entity _entity)
+	{
+		return m_ecsWorld->hasComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+	}
+
+	bool NetworkEngine::networkComponentIdBufferHasId(ecs::Entity _entity, size_t _componentId)
+	{
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		return std::binary_search(componentsId.begin(), componentsId.end(), _componentId);
+	}
+
+	void NetworkEngine::addIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId)
+	{
+		if (networkComponentIdBufferHasId(_entity, _componentId))
+		{
+			return;
+		}
+
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		componentsId.push_back(_componentId);
+
+		std::sort(componentsId.begin(), componentsId.end(),
+			[](const size_t _a, const size_t _b)
+			{
+				return _a < _b;
+			}
+		);
+	}
+
+	void NetworkEngine::removeIdToNetworkComponentIdBuffer(ecs::Entity _entity, size_t _componentId)
+	{
+		if (!networkComponentIdBufferHasId(_entity, _componentId))
+		{
+			return;
+		}
+
+		auto networkcomponentIdBuffer = m_ecsWorld->getComponent<internal::components::NetworkComponentIdBuffer>(_entity);
+		auto& componentsId = networkcomponentIdBuffer->m_componentsId;
+
+		auto it = std::lower_bound(componentsId.begin(), componentsId.end(), _componentId);
+		if (it != componentsId.end() && *it == _componentId)
+		{
+			componentsId.erase(it);
+		}
 	}
 }

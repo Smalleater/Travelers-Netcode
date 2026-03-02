@@ -13,59 +13,18 @@
 #include <functional>
 #include <algorithm>
 
+#include "TRA/netcode/engine/serializable.hpp"
+
 namespace tra::netcode::engine
 {
-	using FieldValue = std::variant<int, float, std::string>;
-	using SerializerFunc = std::function<void(const void*, std::vector<uint8_t>&)>;
-	using DeserializerFunc = std::function<void(const void*, const std::vector<uint8_t>&, size_t&)>;
-
-	struct TRA_API Message
+	struct TRA_API Message : Serializable
 	{
 	public:
-		virtual ~Message() = default;
-		virtual std::string getType() const = 0;
-		virtual std::vector<uint8_t> serialize() const = 0;
+        virtual std::string getType() const = 0;
 
-		static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, SerializerFunc>>>>& getSerializers();
-		static std::map<uint32_t, std::vector<std::pair<std::string, std::pair<size_t, DeserializerFunc>>>>& getDeserializers();
+        static uint32_t hashTypeName(const char* _str);
+        static void registerMessageType(const uint32_t _id, std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
 	};
-
-	namespace internal
-	{
-        TRA_API uint32_t hashTypeName(const char* _str);
-
-        TRA_API void registerMessageType(const uint32_t _id,
-			std::shared_ptr<Message>(*_creator)(const std::vector<uint8_t>&));
-
-        TRA_API void serializeField(std::vector<uint8_t>& _data, int _value);
-        TRA_API void serializeField(std::vector<uint8_t>& _data, float _value);
-        TRA_API void serializeField(std::vector<uint8_t>& _data, const std::string& _value);
-
-		template<typename T>
-		void registerSerializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
-		{
-			auto& serializers = Message::getSerializers();
-			serializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset, [_fieldOffset](const void* base, std::vector<uint8_t>& data) {
-				const T* field = reinterpret_cast<const T*>(static_cast<const char*>(base) + _fieldOffset);
-				serializeField(data, *field);
-				}));
-		}
-
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, int& _value);
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, float& _value);
-        TRA_API void deserializeField(const std::vector<uint8_t>& _data, size_t& _offset, std::string& _value);
-
-		template<typename T>
-		void registerDeserializer(const uint32_t _messageId, const std::string& _fieldName, size_t _fieldOffset)
-		{
-			auto& deserializers = Message::getDeserializers();
-			deserializers[_messageId].emplace_back(_fieldName, std::make_pair(_fieldOffset,
-				[_fieldOffset](const void* base, const std::vector<uint8_t>& data, size_t& offset) {
-					T* field = reinterpret_cast<T*>(static_cast<char*>(const_cast<void*>(base)) + _fieldOffset);
-					deserializeField(data, offset, *field);
-				}));
-		}
-	}
 }
 
 #define DECLARE_MESSAGE_BEGIN(MessageType) \
@@ -74,7 +33,7 @@ namespace tra::message { \
     { \
     public: \
         static constexpr const char* MESSAGE_TYPE_NAME = #MessageType; \
-        inline static uint32_t MESSAGE_TYPE_ID = internal::hashTypeName(MESSAGE_TYPE_NAME); \
+        inline static uint32_t MESSAGE_TYPE_ID = Message::hashTypeName(MESSAGE_TYPE_NAME); \
         using CurrentMessageType = MessageType;
 
 #define FIELD(type, name) \
@@ -85,8 +44,8 @@ namespace tra::message { \
             name##_Registrar() \
             { \
                 const auto offset = reinterpret_cast<size_t>(&(static_cast<CurrentMessageType*>(nullptr)->name)); \
-                internal::registerSerializer<type>(MESSAGE_TYPE_ID, #name, offset); \
-                internal::registerDeserializer<type>(MESSAGE_TYPE_ID, #name, offset); \
+                Serializable::registerSerializer<type>(MESSAGE_TYPE_ID, #name, offset); \
+                Serializable::registerDeserializer<type>(MESSAGE_TYPE_ID, #name, offset); \
             } \
         }; \
         inline static name##_Registrar name##_reg; \
@@ -130,7 +89,7 @@ namespace tra::message { \
     private: \
         struct Register \
         { \
-            Register() { internal::registerMessageType(MESSAGE_TYPE_ID, CurrentMessageType::createFromBytes); } \
+            Register() { Message::registerMessageType(MESSAGE_TYPE_ID, CurrentMessageType::createFromBytes); } \
         }; \
         inline static Register _register{}; \
     }; \

@@ -80,6 +80,8 @@ namespace tra::ecs
 			return entityData.m_archetype->getComponentPtr<T>(entityData);
 		}
 
+		TRA_ECS_API uint8_t* getComponentPtrById(const Entity _entity, const size_t _componentId);
+
 		template<typename T>
 		void setComponent(const Entity _entity, const T& _component)
 		{

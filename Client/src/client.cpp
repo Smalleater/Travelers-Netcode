@@ -12,6 +12,12 @@ namespace tra::netcode::client
 {
 	Client* Client::m_singleton = nullptr;
 
+	Client::Client()
+		: m_clientId(0)
+	{
+
+	}
+
 	Client::~Client()
 	{
 		disconnect();
@@ -54,6 +60,8 @@ namespace tra::netcode::client
 			return ec;
 		}*/
 
+		ClientId m_clientId = 0;
+
 		TRA_INFO_LOG("Client: Successfully connected to server at %s:%d.", _address.c_str(), _port);
 		return ErrorCode::Success;
 	}
@@ -70,6 +78,7 @@ namespace tra::netcode::client
 		//ErrorCode ecUdp = m_networkEngine->stopUdp();
 
 		m_networkEngine.reset();
+		m_spawnDespawnManager.clear();
 
 		TRA_INFO_LOG("Client: Disconnected successfully.");
 		return ErrorCode::Success;
@@ -93,6 +102,45 @@ namespace tra::netcode::client
 	float Client::getFixedDeltaTime()
 	{
 		return m_networkEngine->getFixedDeltaTime();
+	}
+
+	ClientId Client::getClientId()
+	{
+		return m_clientId;
+	}
+
+	std::shared_ptr<engine::NetworkComponent> Client::getNetworkComponentFromCurrentState(
+		const engine::NetworkId _networkId, const std::string& _componentType)
+	{
+		if (!isConnected())
+		{
+			TRA_ERROR_LOG("Client: Cannot get network component from snapshot, client is not connected.");
+			return nullptr;
+		}
+
+		return m_networkEngine->getNetworkComponentFromSnapshot(_networkId, _componentType, true);
+	}
+
+	std::shared_ptr<engine::NetworkComponent> Client::getNetworkComponentFromBuffer(
+		const engine::NetworkId _networkId, const std::string& _componentType)
+	{
+		if (!isConnected())
+		{
+			TRA_ERROR_LOG("Client: Cannot get network component from snapshot, client is not connected.");
+			return nullptr;
+		}
+
+		return m_networkEngine->getNetworkComponentFromSnapshot(_networkId, _componentType, false);
+	}
+
+	bool Client::tryGetSpawn(engine::Spawn& _spawn)
+	{
+		return m_spawnDespawnManager.tryGetSpawn(_spawn);
+	}
+
+	bool Client::tryGetDespawn(engine::Despawn& _despawn)
+	{
+		return m_spawnDespawnManager.tryGetDespawn(_despawn);
 	}
 
 	bool Client::canUpdateNetcode()
@@ -119,6 +167,8 @@ namespace tra::netcode::client
 		}
 
 		m_networkEngine->beginUpdate();
+
+		receiveSpawnDespawnMessage();
 	}
 
 	void Client::endUpdate()
@@ -189,10 +239,38 @@ namespace tra::netcode::client
 			m_networkEngine->setTickRate(initializeClientMessage->m_tickRate);
 			m_networkEngine->resetElapsedTime();
 
+			m_clientId = initializeClientMessage->m_clientId;
+
 			m_networkEngine->getEcsWorld()->addTag<tags::ClientIsReadyTag>(selfEntity);
 
 			auto clientIsReadyMessage = std::make_shared<message::ClientIsReadyMessage>();
 			m_networkEngine->sendTcpMessage(selfEntity, clientIsReadyMessage);
+		}
+	}
+
+	void Client::receiveSpawnDespawnMessage()
+	{
+		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
+
+		auto& spawnDespawnMessages = m_networkEngine->getTcpMessages(selfEntity, "SpawnDespawnMessage");
+		if (spawnDespawnMessages.size() == 0)
+		{
+			return;
+		}
+
+		for (auto& spawnDespawnMessage : spawnDespawnMessages)
+		{
+			auto spawnDespawnMessagePtr = static_cast<message::SpawnDespawnMessage*>(spawnDespawnMessage.get());
+
+			if (!spawnDespawnMessagePtr->m_spawns.empty())
+			{
+				m_spawnDespawnManager.addSpawn(spawnDespawnMessagePtr->m_spawns);
+			}
+			
+			if (!spawnDespawnMessagePtr->m_despawns.empty())
+			{
+				m_spawnDespawnManager.addDespawn(spawnDespawnMessagePtr->m_despawns);
+			}
 		}
 	}
 }

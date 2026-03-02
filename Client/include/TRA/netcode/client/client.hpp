@@ -10,6 +10,9 @@
 
 #include "TRA/netcode/engine/networkEngine.hpp"
 
+#include "TRA/netcode/client/clientId.hpp"
+#include "TRA/netcode/client/spawnDespawnManager.hpp"
+
 namespace tra::netcode::client
 {
 	using EntityId = uint32_t;
@@ -30,6 +33,16 @@ namespace tra::netcode::client
 
 		TRA_API uint32_t getCurrentTick();
 		TRA_API float getFixedDeltaTime();
+		TRA_API ClientId getClientId();
+
+		TRA_API std::shared_ptr<engine::NetworkComponent> getNetworkComponentFromCurrentState(
+			const engine::NetworkId _networkId, const std::string& _componentType);
+
+		TRA_API std::shared_ptr<engine::NetworkComponent> getNetworkComponentFromBuffer(
+			const engine::NetworkId _networkId, const std::string& _componentType);
+
+		TRA_API bool tryGetSpawn(engine::Spawn& _spawn);
+		TRA_API bool tryGetDespawn(engine::Despawn& _despawn);
 
 		TRA_API bool canUpdateNetcode();
 
@@ -48,10 +61,15 @@ namespace tra::netcode::client
 
 		std::unique_ptr<engine::NetworkEngine> m_networkEngine;
 
-		Client() = default;
+		ClientId m_clientId;
+
+		SpawnDespawnManager m_spawnDespawnManager;
+
+		Client();
 		~Client();
 
 		void receiveInitializeClient();
+		void receiveSpawnDespawnMessage();
 	};
 }
 

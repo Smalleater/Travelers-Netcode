@@ -11,6 +11,9 @@
 
 #include "TRA/netcode/engine/networkEngine.hpp"
 
+#include "TRA/netcode/server/clientEntityRegistry.hpp"
+#include "TRA/netcode/server/spawnDespawnManager.hpp"
+
 namespace tra::netcode::server
 {
 	using EntityId = uint32_t;
@@ -30,6 +33,8 @@ namespace tra::netcode::server
 
 		TRA_API uint32_t getCurrentTick();
 		TRA_API float getFixedDeltaTime();
+		TRA_API std::vector<ClientId> getNewClientIds();
+		TRA_API std::vector<ClientId> getDisconnectedClientIds();
 		
 		TRA_API bool canUpdateNetcode();
 
@@ -40,29 +45,45 @@ namespace tra::netcode::server
 
 		TRA_API ecs::World* getEcsWorld();
 
-		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entity, std::shared_ptr<engine::Message> _message);
-		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(ecs::Entity _entity, const std::string& _messageType);
+		TRA_API bool sendTcpMessage(const ClientId _clientId, std::shared_ptr<engine::Message> _message);
+		TRA_API std::vector<std::shared_ptr<engine::Message>> getTcpMessages(const ClientId _clientId, const std::string& _messageType);
+
+		TRA_API engine::NetworkId createNetworkEntity(ClientId _owner, uint16_t _tag);
+		TRA_API void destroyNetworkEntity(engine::NetworkId _networkid);
+
+		template<typename T>
+		void addNetworkComponent(engine::NetworkId _networkid, T&& _component)
+		{
+			m_networkEngine->addNetworkComponent(_networkid, std::forward<T>(_component));
+		}
+
+		template<typename T>
+		void removeNetworkComponent(engine::NetworkId _networkid)
+		{
+			m_networkEngine->removeNetworkComponent<T>(_networkid);
+		}
 
 	private:
 		static Server* m_singleton;
 
 		std::unique_ptr<engine::NetworkEngine> m_networkEngine;
-		
-		uint64_t m_currentTick;
 
-		std::chrono::time_point<std::chrono::high_resolution_clock> m_lastElapsedTimeUpdate;
+		ClientId m_nextClientId;
+		ClientEntityRegistry m_clientEntityRegistry;
+		std::vector<ClientId> m_newClientIds;
+		std::vector<ClientId> m_disconnectedClientIds;
 
-		float m_fixedDeltaTime;
-		float m_elapsedTime;
-
-		uint8_t m_tickRate;
-		std::chrono::high_resolution_clock m_clock;
+		SpawnDespawnManager m_spawnDespawnManager;
 
 		Server() = default;
 		~Server();
 
+		void disconnectedClient();
 		void initializeNewClient();
 		void setClientReady();
+
+		void sendNewSpawnDespawnMessage();
+		void sendAllSpawnMessage(ecs::Entity _entity);
 	};
 }
 
