@@ -97,7 +97,7 @@ int main()
 {
 	ErrorCode ec;
 
-	ec = Server::Get()->start(2025, 1);
+	ec = Server::Get()->start(2025, 5);
 	if (ec != ErrorCode::Success) return -1;
 
 	std::cout << "Fixed delta time value: " << Server::Get()->getFixedDeltaTime() << std::endl;

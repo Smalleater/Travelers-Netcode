@@ -17,6 +17,7 @@ namespace tra::netcode::engine::internal
 		_world->addBeginSystem(std::make_unique<PendingDisconnectSystem>());
 		_world->addBeginSystem(std::make_unique<AcceptConnectionSystem>());
 		_world->addBeginSystem(std::make_unique<ReceiveTcpMessageSystem>());
+		_world->addBeginSystem(std::make_unique<ReceiveSnapshotSystem>());
 
 		// EndUpdate
 		_world->addEndSystem(std::make_unique<SendSnapshotSystem>());

@@ -434,6 +434,62 @@ namespace tra::netcode::engine
 		return it->second;
 	}
 
+	std::shared_ptr<NetworkComponent> NetworkEngine::getNetworkComponentFromSnapshot(
+		const NetworkId _networkId, const std::string& _componentType, bool _lastSnapshot)
+	{
+		if (!m_ecsWorld->hasComponent<internal::components::SnapshotComponent>(m_selfEntity))
+		{
+			TRA_ERROR_LOG("NetworkEngine: Failed to get SnapshotComponent for self entity %I32u.", m_selfEntity.id());
+			return nullptr;
+		}
+
+		auto snapshotComponentPtr = m_ecsWorld->getComponent<internal::components::SnapshotComponent>(m_selfEntity);
+
+
+		size_t snapshotId;
+		if (_lastSnapshot)
+		{
+			snapshotId = snapshotComponentPtr->m_lastSnapshotId;
+		}
+		else
+		{
+			snapshotId = snapshotComponentPtr->m_lastSnapshotId == 0 ? 1 : 0;
+		}
+
+		if (snapshotId == 0)
+		{
+			auto it = snapshotComponentPtr->m_firstSnapshot.find(_networkId);
+			if (it == snapshotComponentPtr->m_firstSnapshot.end())
+			{
+				return nullptr;
+			}
+
+			auto componentIt = it->second.find(_componentType);
+			if (componentIt == it->second.end())
+			{
+				return nullptr;
+			}
+
+			return componentIt->second;
+		}
+		else
+		{
+			auto it = snapshotComponentPtr->m_secondSnapshot.find(_networkId);
+			if (it == snapshotComponentPtr->m_secondSnapshot.end())
+			{
+				return nullptr;
+			}
+
+			auto componentIt = it->second.find(_componentType);
+			if (componentIt == it->second.end())
+			{
+				return nullptr;
+			}
+
+			return componentIt->second;
+		}
+	}
+
 	ecs::World* NetworkEngine::getEcsWorld()
 	{
 		return m_ecsWorld.get();

@@ -1,9 +1,7 @@
 #ifndef TRA_NETCODE_ENGINE_INTERNAL_MESSAGE_HEADER_HPP
 #define TRA_NETCODE_ENGINE_INTERNAL_MESSAGE_HEADER_HPP
 
-#include <variant>
-#include <string>
-#include <unordered_map>
+#include <cstdint>
 
 namespace tra::netcode::engine::internal
 {

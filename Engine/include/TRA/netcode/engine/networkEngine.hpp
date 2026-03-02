@@ -51,6 +51,9 @@ namespace tra::netcode::engine
 		TRA_API ErrorCode sendTcpMessage(ecs::Entity _entity, std::shared_ptr<Message> _message);
 		TRA_API std::vector<std::shared_ptr<Message>> getTcpMessages(ecs::Entity _entity, const std::string& _messageType);
 
+		TRA_API std::shared_ptr<NetworkComponent> getNetworkComponentFromSnapshot(
+			const NetworkId _networkId, const std::string& _componentType, bool _lastSnapshot);
+
 		TRA_API ecs::World* getEcsWorld();
 		TRA_API ecs::Entity getSelfEntity();
 

@@ -9,6 +9,11 @@ namespace tra::netcode::engine::internal
 	{
 		void update(ecs::World* _world) override;
 	};
+
+	struct ReceiveSnapshotSystem : ecs::ISystem
+	{
+		void update(ecs::World* _world) override;
+	};
 }
 
 #endif

@@ -109,6 +109,30 @@ namespace tra::netcode::client
 		return m_clientId;
 	}
 
+	std::shared_ptr<engine::NetworkComponent> Client::getNetworkComponentFromCurrentState(
+		const engine::NetworkId _networkId, const std::string& _componentType)
+	{
+		if (!isConnected())
+		{
+			TRA_ERROR_LOG("Client: Cannot get network component from snapshot, client is not connected.");
+			return nullptr;
+		}
+
+		return m_networkEngine->getNetworkComponentFromSnapshot(_networkId, _componentType, true);
+	}
+
+	std::shared_ptr<engine::NetworkComponent> Client::getNetworkComponentFromBuffer(
+		const engine::NetworkId _networkId, const std::string& _componentType)
+	{
+		if (!isConnected())
+		{
+			TRA_ERROR_LOG("Client: Cannot get network component from snapshot, client is not connected.");
+			return nullptr;
+		}
+
+		return m_networkEngine->getNetworkComponentFromSnapshot(_networkId, _componentType, false);
+	}
+
 	bool Client::tryGetSpawn(engine::Spawn& _spawn)
 	{
 		return m_spawnDespawnManager.tryGetSpawn(_spawn);
