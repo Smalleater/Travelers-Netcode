@@ -231,7 +231,7 @@ namespace tra::netcode::client
 	{
 		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
 
-		auto& initializeClientMessages = m_networkEngine->getTcpMessages(selfEntity, "InitializeClientMessage");
+		auto initializeClientMessages = m_networkEngine->getTcpMessages(selfEntity, "InitializeClientMessage");
 		if (initializeClientMessages.size() > 0)
 		{
 			auto initializeClientMessage = static_cast<message::InitializeClientMessage*>(initializeClientMessages.at(0).get());
@@ -252,7 +252,7 @@ namespace tra::netcode::client
 	{
 		ecs::Entity selfEntity = m_networkEngine->getSelfEntity();
 
-		auto& spawnDespawnMessages = m_networkEngine->getTcpMessages(selfEntity, "SpawnDespawnMessage");
+		auto spawnDespawnMessages = m_networkEngine->getTcpMessages(selfEntity, "SpawnDespawnMessage");
 		if (spawnDespawnMessages.size() == 0)
 		{
 			return;

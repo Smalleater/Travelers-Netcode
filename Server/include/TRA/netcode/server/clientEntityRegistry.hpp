@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 #include "TRA/ecs/entity.hpp"
 

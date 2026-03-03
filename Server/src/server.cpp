@@ -252,7 +252,7 @@ namespace tra::netcode::server
 	{
 		ecs::World* world = m_networkEngine->getEcsWorld();
 
-		auto& queryResult = world->queryEntities(
+		auto queryResult = world->queryEntities(
 			ecs::WithComponent<>{},
 			ecs::WithoutComponent<>{},
 			ecs::WithTag<engine::tags::NewConnectionTag>{},
@@ -286,7 +286,7 @@ namespace tra::netcode::server
 
 		ecs::World* world = m_networkEngine->getEcsWorld();
 
-		auto& queryResult = world->queryEntities(
+		auto queryResult = world->queryEntities(
 			ecs::WithComponent<>{},
 			ecs::WithoutComponent<>{},
 			ecs::WithTag<tags::WaitingClientIsReadyTag>{});
@@ -298,7 +298,7 @@ namespace tra::netcode::server
 
 		for (auto& [entity] : queryResult)
 		{
-			auto& clientIsReadyMessages = m_networkEngine->getTcpMessages(entity, "ClientIsReadyMessage");
+			auto clientIsReadyMessages = m_networkEngine->getTcpMessages(entity, "ClientIsReadyMessage");
 			if (clientIsReadyMessages.size() == 0)
 			{
 				continue;

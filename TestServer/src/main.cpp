@@ -114,10 +114,10 @@ int main()
 		{
 			Server::Get()->beginUpdate();
 
-			auto& disconnectedClientsid = Server::Get()->getDisconnectedClientIds();
+			const auto& disconnectedClientsid = Server::Get()->getDisconnectedClientIds();
 			for (auto& clientId : disconnectedClientsid)
 			{
-				auto& it = std::find_if(clients.begin(), clients.end(),
+				auto it = std::find_if(clients.begin(), clients.end(),
 					[clientId](const Client& _client) {
 						return _client.getClientId() == clientId;
 					});
@@ -129,10 +129,10 @@ int main()
 				}
 			}
 
-			auto& newClientsId = Server::Get()->getNewClientIds();
+			const auto& newClientsId = Server::Get()->getNewClientIds();
 			for (auto& clientId : newClientsId)
 			{
-				auto& it = std::find_if(clients.begin(), clients.end(),
+				auto it = std::find_if(clients.begin(), clients.end(),
 					[clientId](const Client& _client) {
 						return _client.getClientId() == clientId;
 					});

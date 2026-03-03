@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring>
 
 #include "TRA/netcode/engine/spawnDespawn.hpp"
 
