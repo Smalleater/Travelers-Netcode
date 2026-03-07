@@ -128,6 +128,30 @@ namespace tra::netcode::engine
 			m_ecsWorld->removeComponent<T>(entity);
 		}
 
+		template<typename T>
+		std::shared_ptr<NetworkComponent> getNetworkComponent(NetworkId _networkId)
+		{
+			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
+			{
+				TRA_WARNING_LOG("NetworkEngine: Attempted to get a component that is not a NetworkComponent.");
+				return nullptr;
+			}
+
+			ecs::Entity entity = m_networkIdManager.getEntity(_networkId);
+			if (entity.isNull())
+			{
+				TRA_ERROR_LOG("NetworkEngine: Attempted to get a component from an invalid NetworkId: %I32u.", _networkId);
+				return nullptr;
+			}
+
+			if (!m_ecsWorld->hasComponent<T>(entity))
+			{
+				return nullptr;
+			}
+
+			return std::static_pointer_cast<NetworkComponent>(m_ecsWorld->getComponent<T>(entity));
+		}
+
 	private:
 		//core::UdpSocket* m_udpSocket;
 
