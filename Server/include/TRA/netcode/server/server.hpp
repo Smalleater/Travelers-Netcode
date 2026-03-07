@@ -63,6 +63,12 @@ namespace tra::netcode::server
 			m_networkEngine->removeNetworkComponent<T>(_networkid);
 		}
 
+		template<typename T>
+		std::shared_ptr<T> getNetworkComponent(engine::NetworkId _networkId)
+		{
+			return m_networkEngine->getNetworkComponent<T>(_networkId);
+		}
+
 	private:
 		static Server* m_singleton;
 
