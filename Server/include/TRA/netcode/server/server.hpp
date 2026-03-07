@@ -64,7 +64,7 @@ namespace tra::netcode::server
 		}
 
 		template<typename T>
-		std::shared_ptr<T> getNetworkComponent(engine::NetworkId _networkId)
+		T* getNetworkComponent(engine::NetworkId _networkId)
 		{
 			return m_networkEngine->getNetworkComponent<T>(_networkId);
 		}

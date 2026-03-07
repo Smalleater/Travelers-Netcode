@@ -129,7 +129,7 @@ namespace tra::netcode::engine
 		}
 
 		template<typename T>
-		std::shared_ptr<NetworkComponent> getNetworkComponent(NetworkId _networkId)
+		T* getNetworkComponent(NetworkId _networkId)
 		{
 			if constexpr (!std::is_base_of<NetworkComponent, T>::value)
 			{
@@ -149,7 +149,7 @@ namespace tra::netcode::engine
 				return nullptr;
 			}
 
-			return std::static_pointer_cast<NetworkComponent>(m_ecsWorld->getComponent<T>(entity));
+			return m_ecsWorld->getComponent<T>(entity);
 		}
 
 	private:
